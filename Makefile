@@ -11,7 +11,7 @@ get-latest-wp-cli:
 clear:
 	@rm -rf ./build/*
 
-package: clear compile get-latest-wp-cli
+package: clear get-latest-wp-cli compile
 	@mkdir -p ./build/wp-backup-pack
 	@cp ./build/wp-backup ./build/wp-backup-pack/wp-backup
 	@cp ./resource/wp ./build/wp-backup-pack/wp
