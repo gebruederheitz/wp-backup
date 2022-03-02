@@ -15,6 +15,7 @@ package: compile get-latest-wp-cli
 	@cp ./resource/wp ./build/wp-backup-pack/wp
 	@tar --create --file ./build/wp-backup-pack.tar build/wp-backup-pack/*
 	@gzip -9 ./build/wp-backup-pack.tar
+	@gzip -9k ./build/wp-backup-bundle
 	@rm -rf ./build/wp-backup-pack/
 
 compile-only-bundle:
