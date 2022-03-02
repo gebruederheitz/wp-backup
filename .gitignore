@@ -5,10 +5,15 @@
 .dart_tool/
 .packages
 
+# Node overhead
+node_modules/
+
 # Dart / DCLI resource packaging
 lib/
 resource/
 
 # Builds
 build/
-#dist/
+
+# Personal configuration & secrets
+.npmrc

@@ -59,6 +59,8 @@ $> wp-backup -na
 ```shell
 # Install dependencies
 $> dart pub get
-# Pack & Compile everything
+# Pack & Compile everything (recommended once)
 $> make package
+# Run through Dart runtime
+$> dart dist/wp-backup.dart
 ```

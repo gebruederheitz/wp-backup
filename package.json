@@ -21,7 +21,13 @@
   },
   "homepage": "https://github.com/gebruederheitz/wp-backup#readme",
   "scripts": {
-    "build": "dart compile exe -o build/wp-backup src/index.dart",
+    "build": "make package",
+    "release": "release-it --only-version",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@release-it/bumper": "^3.0.1",
+    "@release-it/keep-a-changelog": "^2.3.0",
+    "release-it": "^14.12.5"
   }
 }

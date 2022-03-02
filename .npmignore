@@ -1,0 +1,11 @@
+src/
+resource/
+lib/
+dist/
+.packages
+Makefile
+.release-it.yaml
+pubspec.lock
+pubspec.yaml
+wp-backup.sh
+.dart_tool

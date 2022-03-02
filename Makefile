@@ -8,8 +8,10 @@ get-latest-wp-cli:
 	@mkdir -p resource
 	@curl -o ./resource/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 
-package: compile get-latest-wp-cli
-	@rm -f ./build/wp-backup-pack.tar*
+clear:
+	@rm -rf ./build/*
+
+package: clear compile get-latest-wp-cli
 	@mkdir -p ./build/wp-backup-pack
 	@cp ./build/wp-backup ./build/wp-backup-pack/wp-backup
 	@cp ./resource/wp ./build/wp-backup-pack/wp
@@ -21,3 +23,8 @@ package: compile get-latest-wp-cli
 compile-only-bundle:
 	@mkdir -p build
 	@dart compile exe -o build/wp-backup-bundle dist/wp-backup-with-wp-cli.dart
+
+release:
+	. $$NVM_DIR/nvm.sh && nvm use \
+	&& npm i \
+	&& npm run release
