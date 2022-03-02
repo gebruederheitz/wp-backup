@@ -161,10 +161,10 @@ class Wizard {
     String key = _getKey(ConfigurationOption.operation)!;
 
     if (!config.hasOperation()) {
-      _makeListQuestion(key, 'What is it you would like to back up?', [
-        OperationSelectionOptions[OperationType.all],
-        OperationSelectionOptions[OperationType.database],
-        OperationSelectionOptions[OperationType.userdata],
+      _makeListQuestion(key, 'What is it you would like to back up?', <String>[
+        OperationSelectionOptions[OperationType.all]!,
+        OperationSelectionOptions[OperationType.database]!,
+        OperationSelectionOptions[OperationType.userdata]!,
       ]);
     } else {
       _makeMessage(key, 'Operation ${config.operation} selected.');
@@ -182,9 +182,9 @@ class Wizard {
       String key = 'projectPathPreset';
 
       _makeListQuestion(key, 'Where is your Wordpress deployment located?', [
-        ProjectPathPresetOptions[ProjectPathPreset.cwd],
-        ProjectPathPresetOptions[ProjectPathPreset.userHome],
-        ProjectPathPresetOptions[ProjectPathPreset.custom],
+        ProjectPathPresetOptions[ProjectPathPreset.cwd]!,
+        ProjectPathPresetOptions[ProjectPathPreset.userHome]!,
+        ProjectPathPresetOptions[ProjectPathPreset.custom]!,
       ]);
 
       dialog.order!.add(key);
@@ -202,7 +202,7 @@ class Wizard {
   void _maybeAskWpBinaryType(WpCli wpCli) {
     if (config.wpBinaryType == null) {
       String key = _getKey(ConfigurationOption.wpBinaryType)!;
-      List<String?> options = [];
+      List<String> options = [];
       if (wpCli.isBundled) {
         options.add(WpCliPresetOptions[WpCliType.bundled]);
       }
@@ -246,7 +246,7 @@ class Wizard {
     this.dialog.addQuestion(question, key, is_boolean: boolean);
   }
 
-  void _makeListQuestion(String key, String question, List<String?> options) {
+  void _makeListQuestion(String key, String question, List<String> options) {
     this.dialog.addQuestion({'question': question, 'options': options}, key,
         is_list: true);
   }
