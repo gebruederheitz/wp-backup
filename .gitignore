@@ -1,0 +1,14 @@
+# IDEs
+.idea/
+
+# Dart overhead
+.dart_tool/
+.packages
+
+# Dart / DCLI resource packaging
+lib/
+resource/
+
+# Builds
+build/
+#dist/

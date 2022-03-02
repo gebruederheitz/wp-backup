@@ -1,0 +1,27 @@
+{
+  "name": "@gebruederheitz/wp-backup",
+  "version": "1.0.0-beta.1.1",
+  "description": "Create database and userdata backups for staggered Wordpress releases.",
+  "main": "",
+  "bin": {
+    "wp-backup": "build/wp-backup"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gebruederheitz/wp-backup.git"
+  },
+  "keywords": [
+    "wordpress",
+    "backup"
+  ],
+  "author": "Andreas Maros <andreas.maros@gebruederheitz.de>",
+  "license": "GPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/gebruederheitz/wp-backup/issues"
+  },
+  "homepage": "https://github.com/gebruederheitz/wp-backup#readme",
+  "scripts": {
+    "build": "dart compile exe -o build/wp-backup src/index.dart",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
