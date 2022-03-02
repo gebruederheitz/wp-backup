@@ -1,6 +1,6 @@
 name: wp_backup
 description: Create database and userdata backups for staggered Wordpress releases.
-version: 1.0.0-beta.1.2
+version: 1.0.0-beta.1.3
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
