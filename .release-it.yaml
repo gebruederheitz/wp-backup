@@ -10,6 +10,7 @@ npm:
 hooks:
   before:init:
     - make package
+#  after:bump: "npx auto-changelog -p"
   after:release: "echo Successfully released ${name} v${version} to ${repo.repository} and NPM."
 plugins:
   "@release-it/bumper":
@@ -17,7 +18,7 @@ plugins:
     in: package.json
     out:
       - "./pubspec.yaml"
-  "@release-it/keep-a-changelog":
-    filename: "CHANGELOG.md"
-    addVersionUrl: true
-    strictLatest: false
+#  "@release-it/keep-a-changelog":
+#    filename: "CHANGELOG.md"
+#    addVersionUrl: true
+#    strictLatest: false
