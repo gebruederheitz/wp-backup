@@ -6,12 +6,32 @@ _Create database and userdata backups for staggered Wordpress releases._
 
 ## Installation
 
-***This application is in development and not pubished yet!***
+### Via GitHub
+
+Check the "Assets" field [in the latest GitHub release](https://github.com/gebruederheitz/wp-backup/releases) to 
+download the binaries.
+
+### Via ghdev
+
+For now, the built binaries will also be hosted on ghdev.de. This is probably not permanent and is not guaranteed to 
+be up to date.
+ - https://cdn.ghdev.de/wp-backup/wp-backup
+ - https://cdn.ghdev.de/wp-backup/wp-backup-bundle
+ - https://cdn.ghdev.de/wp-backup/wp-backup-bundle.gz
+ - https://cdn.ghdev.de/wp-backup/wp-backup-pack.tar.gz
+
+### Via NPM
 
 Use NPM to install this package for direct usage:
 
 ```shell
 $> npm i @gebruederheitz/wp-backup
+# Then you can use
+$> npx wp-backup
+$> npx wp-backup-bundle
+# or
+$> ./node_modules/.bin/wp-backup
+$> ./node_modules/.bin/wp-backup-bundle
 ```
 
 ## Usage
