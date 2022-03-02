@@ -4,8 +4,8 @@ import 'package:dcli/dcli.dart';
 
 import 'logger.dart';
 
-void testDirectory(String path) {
-  Directory dir = Directory('realpath $path'.firstLine);
+void testDirectory(String? path) {
+  Directory dir = Directory('realpath $path'.firstLine!);
   Logger().debugContinuable('Testing directory ${dir.path} for validity...');
 
   if (!dir.existsSync()) {

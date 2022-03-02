@@ -20,7 +20,7 @@ class WpCli extends WpCliInterface.WpCli {
 
   static void _unpack(String path) {
     Logger l = Logger();
-    final wpCliResource = ResourceRegistry.resources[resourcePath];
+    final wpCliResource = ResourceRegistry.resources[resourcePath]!;
 
     if (calculateHash(path).hexEncode() != wpCliResource.checksum) {
       l.debugContinuable('Unpacking bundled wp-cli...');

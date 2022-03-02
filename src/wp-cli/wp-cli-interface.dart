@@ -16,9 +16,9 @@ abstract class WpCli {
 
   final bool isBundled = false;
 
-  String customPath;
+  String? customPath;
 
-  String byType(WpCliType type) {
+  String? byType(WpCliType? type) {
     switch (type) {
       case WpCliType.bundled:
         if (isBundled) {

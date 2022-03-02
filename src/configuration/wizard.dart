@@ -4,7 +4,6 @@ import 'package:dcli/dcli.dart';
 import '../argument-parser.dart';
 import '../util/console-helper.dart';
 
-// import '../util/logger.dart';
 import '../wp-cli/wp-cli-interface.dart';
 import 'config.dart';
 
@@ -37,9 +36,9 @@ final Map WpCliPresetOptions = const {
 class Wizard {
   final Config config;
 
-  CLI_Dialog dialog;
+  late CLI_Dialog dialog;
 
-  Map previousAnswers;
+  late Map previousAnswers;
 
   Wizard(this.config, WpCli wpCli) {
     dialog = CLI_Dialog();
@@ -121,7 +120,7 @@ class Wizard {
   }
 
   void _applyClarificationToConfiguration(Map answers) {
-    String previousAnswer = _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
+    String? previousAnswer = _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
     if (previousAnswer == WpCliPresetOptions[WpCliType.custom]) {
       config.wpBinary = answers[_getKey(ConfigurationOption.wpBinary)];
     }
@@ -142,7 +141,7 @@ class Wizard {
     return answerGiven != null ? answerGiven : false;
   }
 
-  String _getKey(ConfigurationOption option) {
+  String? _getKey(ConfigurationOption option) {
     return Config.getParameter(option);
   }
 
@@ -151,7 +150,7 @@ class Wizard {
       String key = 'command';
 
       _makeListQuestion(key, 'Select what it is you would like to do:', [Commands.backup, Commands.restore]);
-      dialog.order.add(key);
+      dialog.order!.add(key);
     }
   }
 
@@ -159,7 +158,7 @@ class Wizard {
    * Ask the user which backup operation to perform if it's not provided yet.
    */
   void _maybeAskOperation() {
-    String key = _getKey(ConfigurationOption.operation);
+    String key = _getKey(ConfigurationOption.operation)!;
 
     if (!config.hasOperation()) {
       _makeListQuestion(key, 'What is it you would like to back up?', [
@@ -171,7 +170,7 @@ class Wizard {
       _makeMessage(key, 'Operation ${config.operation} selected.');
     }
 
-    dialog.order.add(key);
+    dialog.order!.add(key);
   }
 
   /**
@@ -188,22 +187,22 @@ class Wizard {
         ProjectPathPresetOptions[ProjectPathPreset.custom],
       ]);
 
-      dialog.order.add(key);
+      dialog.order!.add(key);
     }
   }
 
   void _maybeAskVerbosity() {
     if (!config.verbose) {
-      String key = _getKey(ConfigurationOption.verbose);
+      String key = _getKey(ConfigurationOption.verbose)!;
       _makeQuestion(key, 'Would you like to enable verbose output?', true);
-      dialog.order.add(key);
+      dialog.order!.add(key);
     }
   }
 
   void _maybeAskWpBinaryType(WpCli wpCli) {
     if (config.wpBinaryType == null) {
-      String key = _getKey(ConfigurationOption.wpBinaryType);
-      List<String> options = [];
+      String key = _getKey(ConfigurationOption.wpBinaryType)!;
+      List<String?> options = [];
       if (wpCli.isBundled) {
         options.add(WpCliPresetOptions[WpCliType.bundled]);
       }
@@ -215,27 +214,27 @@ class Wizard {
       _makeListQuestion(
           key, 'Which WP-CLI binary would you like to use?', options);
 
-      dialog.order.add(key);
+      dialog.order!.add(key);
     }
   }
 
   void _maybeClarifyCustomProjectDirectory() {
     if (previousAnswers['projectPathPreset'] ==
         ProjectPathPresetOptions[ProjectPathPreset.custom]) {
-      String key = _getKey(ConfigurationOption.projectDirectory);
+      String key = _getKey(ConfigurationOption.projectDirectory)!;
       _makeQuestion(key,
           'Please enter the full path to the project directory you want to use:');
-      dialog.order.add(key);
+      dialog.order!.add(key);
     }
   }
 
   void _maybeClarifyCustomWpBinary() {
-    String previousAnswer = _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
+    String? previousAnswer = _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
     if (previousAnswer == WpCliPresetOptions[WpCliType.custom]) {
-      String key = _getKey(ConfigurationOption.wpBinary);
+      String key = _getKey(ConfigurationOption.wpBinary)!;
       _makeQuestion(key,
           'Please enter the full path to the custom wp-cli PHAR archive you wish to use:');
-      dialog.order.add(key);
+      dialog.order!.add(key);
     }
   }
 
@@ -247,7 +246,7 @@ class Wizard {
     this.dialog.addQuestion(question, key, is_boolean: boolean);
   }
 
-  void _makeListQuestion(String key, String question, List<String> options) {
+  void _makeListQuestion(String key, String question, List<String?> options) {
     this.dialog.addQuestion({'question': question, 'options': options}, key,
         is_list: true);
   }

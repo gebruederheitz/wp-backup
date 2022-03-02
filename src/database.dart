@@ -20,7 +20,7 @@ class DatabaseBackup {
 
     String filename = '${config.projectDirectory}/backup/db-${ConsoleHelper.getDateSlug()}.mysql';
     String phpBinary = 'php';
-    String wpBinary = wpCli.byType(config.wpBinaryType);
+    String wpBinary = wpCli.byType(config.wpBinaryType)!;
 
     if (config.usePhpWrapper) {
       phpBinary = 'php-wrapper';

@@ -138,23 +138,23 @@ bundled version (depending on version). For a custom path, use --wp--cli-path.
 };
 
 class Config {
-  String command;
+  String? command;
 
-  OperationType operation;
+  OperationType? operation;
 
-  String projectDirectory;
+  String? projectDirectory;
 
-  String backupUser;
+  String? backupUser;
 
   bool verbose = false;
 
   bool usePhpWrapper = false;
 
-  WpCliType wpBinaryType;
+  WpCliType? wpBinaryType;
 
-  String wpBinary;
+  String? wpBinary;
 
-  String phpBinary;
+  String? phpBinary;
 
   ArgResults options;
 
@@ -162,7 +162,7 @@ class Config {
     parseOperation();
 
     if (options.command?.name != null) {
-      command = options.command.name;
+      command = options.command!.name;
     }
       
     if (getParameterValue(ConfigurationOption.projectDirectory) != null) {
@@ -197,7 +197,7 @@ class Config {
 
   parseWpBinary(WpCli wpCli) {
     if (getParameterValue(ConfigurationOption.wpBinaryType) != null) {
-      String providedType = getParameterValue(ConfigurationOption.wpBinaryType);
+      String? providedType = getParameterValue(ConfigurationOption.wpBinaryType);
       if (providedType == 'bundled') {
         if (!wpCli.isBundled) {
           Logger().error(
@@ -222,7 +222,7 @@ class Config {
   }
 
   static getParameter(ConfigurationOption option) {
-    return OptionParameters[option]['long'];
+    return OptionParameters[option]!['long'];
   }
 
   getParameterValue(ConfigurationOption option) {

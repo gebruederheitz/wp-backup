@@ -42,7 +42,7 @@ class ArgumentParser {
     parser.addCommand(Commands.backup);
     parser.addCommand(Commands.restore);
 
-    return parser.parse(args);
+    return parser.parse(args as Iterable<String>);
   }
 
   printUsage() {

@@ -8,13 +8,13 @@ class ConsoleHelper {
   final String name;
   static final Map<String, ConsoleHelper> _cache = <String, ConsoleHelper>{};
 
-  String user;
+  String? user;
 
-  factory ConsoleHelper([String user]) {
+  factory ConsoleHelper([String? user]) {
     return ConsoleHelper._factoryWithName('console-helper', user);
   }
 
-  factory ConsoleHelper._factoryWithName(String name, [String user]) {
+  factory ConsoleHelper._factoryWithName(String name, [String? user]) {
     var instance = _cache.putIfAbsent(name, () => ConsoleHelper._internal(name, user));
     if (user != null) {
       instance.setUser(user);
@@ -29,7 +29,7 @@ class ConsoleHelper {
     this.user = user;
   }
 
-  void userdo(String command, [String user]) {
+  void userdo(String command, [String? user]) {
     var username = user != null ? user : this.user;
     if (username != null && username != 'whoami'.firstLine) {
       'sudo -s -u $username $command'.run;
@@ -38,13 +38,13 @@ class ConsoleHelper {
     }
   }
 
-  String userdoFirstLine(String command, [String user]) {
+  String? userdoFirstLine(String command, [String? user]) {
     var username = user != null ? user : this.user;
 
     return 'sudo -s -u $username $command'.firstLine;
   }
 
-  static String getDateSlug() {
+  static String? getDateSlug() {
     return 'date +%Y-%m-%d-%H-%M'.firstLine;
   }
 
