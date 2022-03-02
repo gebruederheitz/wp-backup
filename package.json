@@ -1,6 +1,6 @@
 {
   "name": "@gebruederheitz/wp-backup",
-  "version": "1.0.0-beta.1.1",
+  "version": "1.0.0-beta.1.2",
   "description": "Create database and userdata backups for staggered Wordpress releases.",
   "main": "",
   "bin": {
