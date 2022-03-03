@@ -26,6 +26,8 @@ enum ConfigurationOption {
   operationDb,
   operationUserdata,
   noInteraction,
+  comment,
+  // backupBeforeRestore, /* @TODO */
 }
 
 class OptionParameter {
@@ -136,6 +138,8 @@ class Config {
 
   String? phpBinary;
 
+  String? comment;
+
   ArgResults options;
 
   Config.fromOptions(this.options, WpCli wpCli) {
@@ -156,6 +160,10 @@ class Config {
     parseWpBinary(wpCli);
     if (getParameterValue(ConfigurationOption.usePhpWrapper)) {
       usePhpWrapper = true;
+    }
+
+    if (getParameterValue(ConfigurationOption.comment) != null) {
+      comment = getParameterValue(ConfigurationOption.comment);
     }
 
     backupUser = getParameterValue(ConfigurationOption.backupUser) ?? 'whoami'.firstLine;

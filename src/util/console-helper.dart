@@ -44,23 +44,32 @@ class ConsoleHelper {
     return 'sudo -s -u $username $command'.firstLine;
   }
 
-  static String? getDateSlug() {
-    return 'date +%Y-%m-%d-%H-%M'.firstLine;
+  static String getDateSlug() {
+    return 'date +%Y-%m-%d-%H-%M'.firstLine ?? '';
   }
 
-  static void checkWpBinary(String wpBinaryPath) {
+  static String checkWpBinary(String wpBinaryPath) {
     Logger l = Logger();
     l.debugContinuable('Testing wp binary at path $wpBinaryPath');
 
     var file = File(wpBinaryPath);
-    bool exists = file.existsSync();
+    bool fileExists = file.existsSync();
+    bool whichHasResult = false;
     // bool isExecutable = file.statSync().modeString()[2] == 'x';
-    // if (!(exists && isExecutable)) {
-    if (!(exists)) {
+    // if (!(fileExists && isExecutable)) {
+    if (!(fileExists)) {
+      if (which(wpBinaryPath).found) {
+        whichHasResult = true;
+        wpBinaryPath = which(wpBinaryPath).path!;
+      }
+    }
+
+    if (!(fileExists || whichHasResult)) {
       l.error('Custom wp-cli file does not exist or is not executable!');
       exit(2);
     }
 
     l.debugContinued(green(' Ok.'));
+    return wpBinaryPath;
   }
 }

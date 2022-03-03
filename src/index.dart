@@ -28,12 +28,12 @@ class WpBackup {
       exit(ExitCodes.ok);
     }
 
+    showVersion();
     if (config.wantsVersion()) {
-      showVersion();
       exit(ExitCodes.ok);
     }
 
-    if (config.wantsNoInteraction()) {
+  if (config.wantsNoInteraction()) {
       config.setNoInteractionDefaults(wpCli);
     } else {
       Wizard wizard = Wizard(config, wpCli);
@@ -45,7 +45,7 @@ class WpBackup {
     }
 
     Logger l = Logger();
-    l.debug('Command: ${config.command}');
+    l.debug('Command: ${config.mode}');
     l.debug('Operation: ${config.operation}');
     l.debug('Verbose: ${config.verbose}');
     l.debug('WP-CLI type: ${config.wpBinaryType}');
@@ -53,8 +53,7 @@ class WpBackup {
     l.debug('Project directory: ${config.projectDirectory}');
     ConsoleHelper(config.backupUser);
 
-    showVersion();
-    if (config.command == null || ![Commands.restore, Commands.backup].contains(config.command)) {
+    if (config.mode == null || ![Commands.restore, Commands.backup].contains(config.mode)) {
       l.error('Invaid command. Try "wp-backup -h" for usage information.');
       exit(ExitCodes.commandNotFound);
     }
@@ -63,7 +62,7 @@ class WpBackup {
     if ([OperationType.all, OperationType.database]
         .contains(config.operation)) {
       DatabaseBackup dbb = DatabaseBackup(config, wpCli);
-      if (config.command == Commands.backup) {
+      if (config.mode == Commands.backup) {
         dbb.backup();
       } else {
         dbb.restore();
@@ -72,7 +71,7 @@ class WpBackup {
 
     if ([OperationType.all, OperationType.userdata].contains(config.operation)) {
       UserdataBackup udb = UserdataBackup(config);
-      if (config.command == Commands.backup) {
+      if (config.mode == Commands.backup) {
         udb.backup();
       } else {
         udb.restore();

@@ -35,40 +35,65 @@ final Map WpCliPresetOptions = const <WpCliType, String>{
 
 class Wizard {
   final Config config;
+  final WpCli wpCli;
 
   late CLI_Dialog dialog;
-
   late Map previousAnswers;
 
-  Wizard(this.config, WpCli wpCli) {
-    dialog = CLI_Dialog();
-    dialog.order = [];
+  List<String> dialogOrder = [];
 
-    _maybeAskCommand();
+  bool wantsComment = false;
+
+  Wizard(this.config, this.wpCli) {
+    dialog = CLI_Dialog();
+
+    _maybeAskMode();
     _maybeAskOperation();
     _maybeAskProjectDirectoryPreset();
     _maybeAskVerbosity();
-    _maybeAskWpBinaryType(wpCli);
+
+    dialog.order = dialogOrder;
+    dialogOrder = <String>[];
   }
 
   Config run() {
     Map answers = dialog.ask();
     _applyAnswersToConfiguration(answers);
 
+    _askDetails();
     if (_needsClarification(answers)) {
-      _askDetails(answers);
+      _clarify(answers);
     }
 
     return this.config;
   }
 
-  void _askDetails(Map previousAnswers) {
+  void _askDetails() {
     dialog = CLI_Dialog();
-    dialog.order = [];
+
+    _maybeAskWpBinaryType();
+    _maybeAskComment();
+
+    if (dialogOrder.length > 0) {
+      dialog.order = dialogOrder;
+      dialogOrder = <String>[];
+
+      Map answers = dialog.ask();
+      _applyDetailsToConfiguration(answers);
+    }
+  }
+
+
+  void _clarify(Map previousAnswers) {
+    dialog = CLI_Dialog();
     this.previousAnswers = previousAnswers;
 
     _maybeClarifyCustomProjectDirectory();
+    _maybeClarifyComment();
     _maybeClarifyCustomWpBinary();
+
+    dialog.order = dialogOrder;
+    dialogOrder = <String>[];
 
     Map answers = dialog.ask();
 
@@ -76,9 +101,7 @@ class Wizard {
   }
 
   void _applyAnswersToConfiguration(Map answers) {
-    if (config.command == null) {
-      config.command = answers['command'];
-    }
+    config.mode ??= answers['mode'];
 
     if (!config.hasOperation()) {
       var operationAnswer =
@@ -91,19 +114,6 @@ class Wizard {
     if (!this.config.verbose) {
       this.config.verbose =
           _getFlagByOption(answers, ConfigurationOption.verbose);
-    }
-
-    if (config.wpBinary == null) {
-      var wpBinaryType = _getAnswerByOption(answers, ConfigurationOption.wpBinaryType);
-      if (wpBinaryType == WpCliPresetOptions[WpCliType.bundled]) {
-        config.wpBinaryType = WpCliType.bundled;
-      } else if (wpBinaryType == WpCliPresetOptions[WpCliType.directory]) {
-        config.wpBinaryType = WpCliType.directory;
-      } else if (wpBinaryType == WpCliPresetOptions[WpCliType.path]) {
-        config.wpBinaryType = WpCliType.path;
-      } else if (wpBinaryType == WpCliPresetOptions[WpCliType.custom]) {
-        config.wpBinaryType = WpCliType.custom;
-      }
     }
 
     if (config.projectDirectory == null) {
@@ -121,7 +131,7 @@ class Wizard {
 
   void _applyClarificationToConfiguration(Map answers) {
     String? previousAnswer = _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
-    if (previousAnswer == WpCliPresetOptions[WpCliType.custom]) {
+    if (_isDbBackup() && previousAnswer == WpCliPresetOptions[WpCliType.custom]) {
       config.wpBinary = answers[_getKey(ConfigurationOption.wpBinary)];
     }
 
@@ -129,6 +139,35 @@ class Wizard {
         ProjectPathPresetOptions[ProjectPathPreset.custom]) {
       config.projectDirectory =
           answers[_getKey(ConfigurationOption.projectDirectory)];
+    }
+
+    if (_isBackup() && wantsComment) {
+      config.comment = _getAnswerByOption(answers, ConfigurationOption.comment);
+    }
+  }
+
+  void _applyDetailsToConfiguration(Map answers) {
+    if (_isBackup()) {
+      wantsComment = _getAnswerByOption(answers, ConfigurationOption.comment);
+
+      if (_isDbBackup()) {
+        if (config.wpBinary == null) {
+          var wpBinaryType = _getAnswerByOption(
+              answers,
+              ConfigurationOption.wpBinaryType
+          );
+
+          if (wpBinaryType == WpCliPresetOptions[WpCliType.bundled]) {
+            config.wpBinaryType = WpCliType.bundled;
+          } else if (wpBinaryType == WpCliPresetOptions[WpCliType.directory]) {
+            config.wpBinaryType = WpCliType.directory;
+          } else if (wpBinaryType == WpCliPresetOptions[WpCliType.path]) {
+            config.wpBinaryType = WpCliType.path;
+          } else if (wpBinaryType == WpCliPresetOptions[WpCliType.custom]) {
+            config.wpBinaryType = WpCliType.custom;
+          }
+        }
+      }
     }
   }
 
@@ -141,16 +180,27 @@ class Wizard {
     return answerGiven != null ? answerGiven : false;
   }
 
-  String? _getKey(ConfigurationOption option) {
+  String _getKey(ConfigurationOption option) {
     return Config.getParameter(option);
   }
 
-  void _maybeAskCommand() {
-    if (config.command == null) {
-      String key = 'command';
+  void _maybeAskComment() {
+    if (!_isBackup()) return;
+
+    if (config.comment == null) {
+      String key = _getKey(ConfigurationOption.comment);
+      _makeQuestion(key, 'Would you like to add a tag / comment to the filename?', true);
+
+      dialogOrder.add(key);
+    }
+  }
+
+  void _maybeAskMode() {
+    if (config.mode == null) {
+      String key = 'mode';
 
       _makeListQuestion(key, 'Select what it is you would like to do:', [Commands.backup, Commands.restore]);
-      dialog.order!.add(key);
+      dialogOrder.add(key);
     }
   }
 
@@ -158,7 +208,7 @@ class Wizard {
    * Ask the user which backup operation to perform if it's not provided yet.
    */
   void _maybeAskOperation() {
-    String key = _getKey(ConfigurationOption.operation)!;
+    String key = _getKey(ConfigurationOption.operation);
 
     if (!config.hasOperation()) {
       _makeListQuestion(key, 'What is it you would like to back up?', <String>[
@@ -170,7 +220,7 @@ class Wizard {
       _makeMessage(key, 'Operation ${config.operation} selected.');
     }
 
-    dialog.order!.add(key);
+    dialogOrder.add(key);
   }
 
   /**
@@ -187,21 +237,23 @@ class Wizard {
         ProjectPathPresetOptions[ProjectPathPreset.custom]!,
       ]);
 
-      dialog.order!.add(key);
+      dialogOrder.add(key);
     }
   }
 
   void _maybeAskVerbosity() {
     if (!config.verbose) {
-      String key = _getKey(ConfigurationOption.verbose)!;
+      String key = _getKey(ConfigurationOption.verbose);
       _makeQuestion(key, 'Would you like to enable verbose output?', true);
-      dialog.order!.add(key);
+      dialogOrder.add(key);
     }
   }
 
-  void _maybeAskWpBinaryType(WpCli wpCli) {
+  void _maybeAskWpBinaryType() {
+    if (!_isDbBackup()) return;
+
     if (config.wpBinaryType == null) {
-      String key = _getKey(ConfigurationOption.wpBinaryType)!;
+      String key = _getKey(ConfigurationOption.wpBinaryType);
       List<String> options = [];
       if (wpCli.isBundled) {
         options.add(WpCliPresetOptions[WpCliType.bundled]);
@@ -214,27 +266,35 @@ class Wizard {
       _makeListQuestion(
           key, 'Which WP-CLI binary would you like to use?', options);
 
-      dialog.order!.add(key);
+      dialogOrder.add(key);
+    }
+  }
+
+  void _maybeClarifyComment() {
+    if (wantsComment) {
+      String key = _getKey(ConfigurationOption.comment);
+      _makeQuestion(key, 'Please specify the tag / comment (will-be-slugified).');
+      dialogOrder.add(key);
     }
   }
 
   void _maybeClarifyCustomProjectDirectory() {
     if (previousAnswers['projectPathPreset'] ==
         ProjectPathPresetOptions[ProjectPathPreset.custom]) {
-      String key = _getKey(ConfigurationOption.projectDirectory)!;
+      String key = _getKey(ConfigurationOption.projectDirectory);
       _makeQuestion(key,
           'Please enter the full path to the project directory you want to use:');
-      dialog.order!.add(key);
+      dialogOrder.add(key);
     }
   }
 
   void _maybeClarifyCustomWpBinary() {
     String? previousAnswer = _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
     if (previousAnswer == WpCliPresetOptions[WpCliType.custom]) {
-      String key = _getKey(ConfigurationOption.wpBinary)!;
+      String key = _getKey(ConfigurationOption.wpBinary);
       _makeQuestion(key,
           'Please enter the full path to the custom wp-cli PHAR archive you wish to use:');
-      dialog.order!.add(key);
+      dialogOrder.add(key);
     }
   }
 
@@ -261,6 +321,19 @@ class Wizard {
       return true;
     }
 
+    if (wantsComment) {
+      return true;
+    }
+
     return false;
+  }
+
+  bool _isBackup() {
+    return config.mode == Commands.backup;
+  }
+
+  bool _isDbBackup() {
+    return config.mode == Commands.backup
+        && [OperationType.all, OperationType.database].contains(config.operation);
   }
 }
