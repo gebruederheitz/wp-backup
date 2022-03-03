@@ -25,7 +25,7 @@ final Map<ProjectPathPreset, String> ProjectPathPresetOptions = const {
   ProjectPathPreset.custom: 'A custom path',
 };
 
-final Map WpCliPresetOptions = const {
+final Map WpCliPresetOptions = const <WpCliType, String>{
   WpCliType.bundled: 'Use the bundled PHAR archive of WP-CLI (recommended)',
   WpCliType.path: 'Use the executable PHAR named "wp" on the \$PATH',
   WpCliType.directory:

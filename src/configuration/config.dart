@@ -28,117 +28,97 @@ enum ConfigurationOption {
   noInteraction,
 }
 
-final OptionParameters = const {
-  'sep-general': {
-    'type': 'separator',
-    'content': '--- General help & information --------'
-  },
-  ConfigurationOption.help: {
-    'long': 'help',
-    'short': 'h',
-    'default': false,
-    'help': 'Show this help and exit.'
-  },
-  ConfigurationOption.version: {
-    'long': 'version',
-    'short': 'v',
-    'default': false,
-    'help': 'Display version and exit.'
-  },
-  'sep-global': {
-    'type': 'separator',
-    'content': '--- Global settings -------------------'
-  },
-  ConfigurationOption.projectDirectory: {
-    'long': 'directory',
-    'short': 'd',
-    // 'default': '\$HOME',
-    'valueHelp': 'path-to-project',
-    'help': '''
+class OptionParameter {
+  final String? separatorBefore;
+  final String long;
+  final String short;
+  final defaultValue;
+  final String? help;
+  final String? valueHelp;
+
+  const OptionParameter(
+    this.long,
+    this.short,
+    {
+      this.defaultValue = null,
+      this.help = null,
+      this.valueHelp = null,
+      this.separatorBefore = null,
+    }
+  );
+}
+
+const Map<ConfigurationOption, OptionParameter> OptionParameters = const <ConfigurationOption, OptionParameter>{
+  ConfigurationOption.help: OptionParameter('help', 'h',
+    separatorBefore: '--- General help & information --------',
+    defaultValue: false,
+    help: 'Show this help and exit.'
+  ),
+  ConfigurationOption.version: OptionParameter('version', 'v',
+    defaultValue: false,
+    help: 'Display version and exit',
+  ),
+  ConfigurationOption.projectDirectory: OptionParameter('directory', 'd',
+    valueHelp: '</path/to/project>',
+    help: '''
 The directory to run in. This is the directory that contains backup/, userdata/ 
-and public/ directoris. Defaults to the current working directory in 
+and public/ directories. Defaults to the current working directory in 
 no-interaction mode.
     ''',
-  },
-  ConfigurationOption.verbose: {
-    'long': 'verbose',
-    'short': 'V',
-    'default': false,
-    'help': 'More output.'
-  },
-  ConfigurationOption.backupUser: {
-    'long': 'user',
-    'short': 'u',
-    'default': null,
-    'help': 'The user under which to operate.',
-    'valueHelp': 'blargo'
-  },
-  ConfigurationOption.noInteraction: {
-    'long': 'no-interaction',
-    'short': 'n',
-    'default': false,
-    'help':
-    'Skip the wizard, do not ask questions. For scripts and CI applications.'
-  },
-  'sep-operation': {
-    'type': 'separator',
-    'content': '--- Operation control -----------------'
-  },
-  ConfigurationOption.operation: {
-    'long': 'operation',
-    'short': 'o',
-    'help': 'Which backups to perform',
-    'valueHelp': 'database|userdata|all'
-  },
-  ConfigurationOption.operationAll: {
-    'long': 'all',
-    'short': 'a',
-    'default': false,
-  },
-  ConfigurationOption.operationDb: {
-    'long': 'db',
-    'short': 'D',
-    'default': false,
-  },
-  ConfigurationOption.operationUserdata: {
-    'long': 'userdata',
-    'short': 'U',
-    'default': false,
-  },
-  'sep-database': {
-    'type': 'separator',
-    'content': '--- Database backup settings ----------',
-  },
-  ConfigurationOption.usePhpWrapper: {
-    'long': 'php-wrapper',
-    'short': 'P',
-    'default': false,
-    'help': '''
+  ),
+  ConfigurationOption.verbose: OptionParameter('verbose', 'V',
+    defaultValue: false,
+    help: 'More output',
+  ),
+  ConfigurationOption.backupUser: OptionParameter('user', 'u',
+    defaultValue: null,
+    help: 'The user under which to operate.',
+    valueHelp: '<username>',
+  ),
+  ConfigurationOption.noInteraction: OptionParameter('no-interaction', 'n',
+    defaultValue: false,
+    help: 'Skip the wizard, do not ask questions. For scripts and CI applications.',
+  ),
+  ConfigurationOption.operation: OptionParameter('operation', 'o',
+    help: 'Which backups to perform',
+    valueHelp: 'database|userdata|all',
+    separatorBefore: '--- Operation control -----------------',
+  ),
+  ConfigurationOption.operationAll: OptionParameter('all', 'a',
+    defaultValue: false,
+  ),
+  ConfigurationOption.operationDb: OptionParameter('db', 'D', defaultValue: false),
+  ConfigurationOption.operationUserdata: OptionParameter('userdata', 'U', defaultValue: false),
+  ConfigurationOption.usePhpWrapper: OptionParameter('php-wrapper', 'P',
+    separatorBefore: '--- Database backup settings ----------',
+    defaultValue: false,
+    help: '''
 Instead of using a (custom) PHP binary, use php-wrapper instead (must be on the 
 \$PATH).
     ''',
-  },
-  ConfigurationOption.phpBinary: {'long': 'php', 'short': 'p', 'default': null},
-  ConfigurationOption.wpBinaryType: {
-    'long': 'wp-cli-type',
-    'short': 'w',
-    'help': '''
+  ),
+  ConfigurationOption.phpBinary: OptionParameter('php', 'p', defaultValue: null),
+  ConfigurationOption.wpBinaryType: OptionParameter('wp-cli-type', 'w',
+    valueHelp: 'bundled|path|directory',
+    help: '''
 Whether to use a wp-cli binary on the \$PATH, in the script directory or the 
 bundled version (depending on version). For a custom path, use --wp--cli-path.
-    ''',
-    'valueHelp': 'bundled|path|directory',
-  },
-  ConfigurationOption.wpBinary: {
-    'long': 'wp-cli-path',
-    'short': 'W',
-    'default': null,
-    'help': 'A custom wp-cli executable PHAR archive to use for DB exporting.',
-    'valueHelp': 'path-to-wp-cli.phar',
-  },
+  ''',
+  ),
+  ConfigurationOption.wpBinary: OptionParameter('wp-cli-path', 'W',
+    defaultValue: null,
+    help: 'A custom wp-cli executable PHAR archive to use for DB exporting.',
+    valueHelp: 'path-to-wp-cli.phar',
+  ),
+  ConfigurationOption.comment: OptionParameter('comment', 'c',
+    defaultValue: null,
+    help: 'A comment or tag to append to the backup file (not available in restore mode).',
+    valueHelp: '<tag-or-comment>',
+  ),
 };
 
 class Config {
-  String? command;
+  String? mode;
 
   OperationType? operation;
 
@@ -162,7 +142,7 @@ class Config {
     parseOperation();
 
     if (options.command?.name != null) {
-      command = options.command!.name;
+      mode = options.command!.name;
     }
       
     if (getParameterValue(ConfigurationOption.projectDirectory) != null) {
@@ -221,8 +201,8 @@ class Config {
     }
   }
 
-  static getParameter(ConfigurationOption option) {
-    return OptionParameters[option]!['long'];
+  static String getParameter(ConfigurationOption option) {
+    return OptionParameters[option]!.long;
   }
 
   getParameterValue(ConfigurationOption option) {
