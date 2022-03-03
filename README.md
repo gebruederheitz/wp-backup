@@ -54,7 +54,7 @@ $> wp-backup backup -d ~/projects/my-wp-site/htdocs
 
 # Skip the wizard, don't ask questions: Run a backup of userdata & DB in the 
 # current directory
-$> wp-backup -na
+$> wp-backup backup -na
 ```
 
 ### Dependencies
