@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cli_dialog/cli_dialog.dart';
 import 'package:cli_util/cli_logging.dart' as CliUtil;
 import 'package:dcli/dcli.dart';
 import 'package:slugify/slugify.dart';

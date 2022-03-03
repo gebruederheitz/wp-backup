@@ -11,8 +11,6 @@ class ArgumentParser {
   ArgParser parser = ArgParser();
 
   ArgResults parseOptions(Iterable args) {
-    var params = Map.from(OptionParameters);
-
     OptionParameters.forEach((ConfigurationOption option, OptionParameter config) {
       if (config.separatorBefore is String) {
         parser.addSeparator(config.separatorBefore!);
