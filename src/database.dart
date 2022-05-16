@@ -64,7 +64,7 @@ class DatabaseBackup {
   }
 
   restore() {
-    bool backupBeforeRestore = false;
+    bool backupBeforeRestore = config.backupBeforeRestore;
 
     // wizard: create backup before restore?
     if (backupBeforeRestore) {
@@ -86,9 +86,11 @@ class DatabaseBackup {
       Logger().debug('Will restore $backupToRestore');
 
       CliUtil.Progress progress = progressFactory.progress('Unpacking backup archive');
-      String tempPath = Directory.systemTemp.path;
-      String restoredPath = join(tempPath, 'wp-backup-restore.mysql');
-      'gunzip -kfc $backupToRestore > $restoredPath'.run;
+      // We strip off the ".gz" extension, keeping the ".mysql"
+      String backupToRestorePath = backupToRestore.path;
+      String restoredFileName = basenameWithoutExtension(backupToRestorePath);
+      String restoredPath = join(dirname(backupToRestorePath), restoredFileName);
+      ConsoleHelper().userdo('gunzip -kf $backupToRestorePath');
       progress.finish(showTiming: true);
 
       progress = progressFactory.progress('Restoring database');
@@ -103,6 +105,7 @@ class DatabaseBackup {
         return;
       }
 
+      File(restoredPath).deleteSync();
       logger.debug('Done: Restored database backup from $backupToRestore.');
       logger.log(green('Database backup restored.'));
     }

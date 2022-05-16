@@ -73,6 +73,7 @@ class Wizard {
 
     _maybeAskWpBinaryType();
     _maybeAskComment();
+    _maybeAskBackupBeforeRestore();
 
     if (dialogOrder.length > 0) {
       dialog.order = dialogOrder;
@@ -168,6 +169,8 @@ class Wizard {
           }
         }
       }
+    } else {
+      config.backupBeforeRestore = _getAnswerByOption(answers, ConfigurationOption.backupBeforeRestore);
     }
   }
 
@@ -193,6 +196,14 @@ class Wizard {
 
       dialogOrder.add(key);
     }
+  }
+
+  void _maybeAskBackupBeforeRestore() {
+    if (_isBackup()) return;
+
+    String key = _getKey(ConfigurationOption.backupBeforeRestore);
+    _makeQuestion(key, 'Shall we create a new backup of the status quo before restoring?', true);
+    dialogOrder.add(key);
   }
 
   void _maybeAskMode() {

@@ -27,7 +27,7 @@ enum ConfigurationOption {
   operationUserdata,
   noInteraction,
   comment,
-  // backupBeforeRestore, /* @TODO */
+  backupBeforeRestore,
 }
 
 class OptionParameter {
@@ -113,9 +113,15 @@ bundled version (depending on version). For a custom path, use --wp--cli-path.
     valueHelp: 'path-to-wp-cli.phar',
   ),
   ConfigurationOption.comment: OptionParameter('comment', 'c',
+    separatorBefore: '--- Backup settings -------------------',
     defaultValue: null,
     help: 'A comment or tag to append to the backup file (not available in restore mode).',
     valueHelp: '<tag-or-comment>',
+  ),
+  ConfigurationOption.backupBeforeRestore: OptionParameter('backup-before', 'b',
+    separatorBefore: '--- Restore settings ------------------',
+    defaultValue: false,
+    help: 'Create a backup before restoring the selected one.',
   ),
 };
 
@@ -139,6 +145,8 @@ class Config {
   String? phpBinary;
 
   String? comment;
+
+  bool backupBeforeRestore = false;
 
   ArgResults options;
 
@@ -167,6 +175,10 @@ class Config {
     }
 
     backupUser = getParameterValue(ConfigurationOption.backupUser) ?? 'whoami'.firstLine;
+
+    if (getParameterValue(ConfigurationOption.backupBeforeRestore) == true) {
+      backupBeforeRestore = true;
+    }
   }
   
   parseOperation() {

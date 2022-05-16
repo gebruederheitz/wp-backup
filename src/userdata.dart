@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart' as CliUtil;
 import 'package:dcli/dcli.dart';
+import 'package:slugify/slugify.dart';
 
 import 'configuration/config.dart';
 import 'util/confirmation.dart';
@@ -22,8 +23,11 @@ class UserdataBackup {
     logger.debug("Backing up userdata directory...");
     CliUtil.Progress progress = progressFactory.progress("Creating ZIP archive of userdata. This might take a while.");
 
-    String filename = "${config.projectDirectory}/backup/userdata-${ConsoleHelper.getDateSlug()}.zip";
-    String zipOptions = "-9 -r";
+    String base = config.projectDirectory!;
+    String slug = ConsoleHelper.getDateSlug();
+    String comment = config.comment != null ? '--' + slugify(config.comment!) : '';
+    String filename = "$base/backup/userdata-$slug$comment.zip";
+    String zipOptions = "-9 -r -p";
 
     // Quiet zip output, unless in verbose mode
     if (config.verbose) {
@@ -34,8 +38,9 @@ class UserdataBackup {
     }
 
     try {
-      ConsoleHelper().userdo(
-          'zip $zipOptions "$filename" "${config.projectDirectory}/userdata'
+      ConsoleHelper().userdoStart(
+          'zip $zipOptions "$filename" .',
+          '${config.projectDirectory}/userdata'
       );
       progress.finish(showTiming: true);
     } catch (e) {
@@ -51,7 +56,7 @@ class UserdataBackup {
   }
 
   restore() {
-    bool backupBeforeRestore = false;
+    bool backupBeforeRestore = config.backupBeforeRestore;
     // wizard: create backup before restore?
 
     if (backupBeforeRestore) {
@@ -78,14 +83,16 @@ class UserdataBackup {
       if (tempDir.existsSync()) {
         tempDir.deleteSync(recursive: true);
       }
-      'unzip -d $tempPath $backupToRestore';
+      ConsoleHelper().userdo('unzip -q -d $tempPath ${backupToRestore.path}');
       progress.finish(showTiming: true);
 
       progress = progressFactory.progress('Moving files into place');
       String targetPath = join(config.projectDirectory!, 'userdata');
       String conveniencePath = join(config.projectDirectory!, 'userdata-previous');
 
-      ConsoleHelper().userdo('mv $targetPath $conveniencePath && mv $tempDir $targetPath');
+      /* @FIXME: atomic "&&" operation seems impossible with dcli */
+      ConsoleHelper().userdo('mv $targetPath $conveniencePath');
+      ConsoleHelper().userdo('mv $tempPath $targetPath');
       Directory(conveniencePath).deleteSync(recursive: true);
       progress.finish(showTiming: true);
 

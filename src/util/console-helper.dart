@@ -38,6 +38,15 @@ class ConsoleHelper {
     }
   }
 
+  void userdoStart(String command, [String? workingDirectory, String? user]) {
+    var username = user != null ? user : this.user;
+    if (username != null && username != 'whoami'.firstLine) {
+      'sudo -s -u $username $command'.start(workingDirectory: workingDirectory);
+    } else {
+      command.start(workingDirectory: workingDirectory);
+    }
+  }
+
   String? userdoFirstLine(String command, [String? user]) {
     var username = user != null ? user : this.user;
 
