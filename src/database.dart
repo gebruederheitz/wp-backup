@@ -102,6 +102,7 @@ class DatabaseBackup {
         progress.finish(showTiming: false);
         logger.error('Database import failed.');
         logger.debug(e.toString());
+        File(restoredPath).deleteSync();
         return;
       }
 
