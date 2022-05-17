@@ -11,31 +11,28 @@ class ArgumentParser {
   ArgParser parser = ArgParser();
 
   ArgResults parseOptions(Iterable args) {
-    var params = Map.from(OptionParameters);
-
-    params.forEach((option, config) {
-      if (config['type'] == 'separator') {
-        parser.addSeparator(config['content']);
-        return;
+    OptionParameters.forEach(
+        (ConfigurationOption option, OptionParameter config) {
+      if (config.separatorBefore is String) {
+        parser.addSeparator(config.separatorBefore!);
       }
 
-      var type = config['default'].runtimeType;
+      bool isBoolean = config.defaultValue is bool;
 
-      if (type == bool) {
-        parser.addFlag(
-              config['long'],
-              abbr: config['short'],
-              defaultsTo: config['default'],
-              negatable: false,
-              help: config['help']);
-      } else if (type == String || config['default'] == null) {
+      if (isBoolean) {
+        parser.addFlag(config.long,
+            abbr: config.short,
+            defaultsTo: config.defaultValue,
+            negatable: false,
+            help: config.help);
+      } else {
         parser.addOption(
-            config['long'],
-            abbr: config['short'],
-            defaultsTo: config['default'],
-            help: config['help'],
-            valueHelp: config['valueHelp'],
-          );
+          config.long,
+          abbr: config.short,
+          defaultsTo: config.defaultValue,
+          help: config.help,
+          valueHelp: config.valueHelp,
+        );
       }
     });
 

@@ -1,46 +1,56 @@
+import 'dart:io';
+
 import 'package:cli_util/cli_logging.dart' as CliUtil;
 import 'package:dcli/dcli.dart';
+import 'package:slugify/slugify.dart';
 
 import 'configuration/config.dart';
+import 'util/confirmation.dart';
 import 'util/console-helper.dart';
+import 'util/exit-codes.dart';
+import 'util/file-selector.dart';
 import 'util/logger.dart';
 import 'wp-cli/wp-cli-interface.dart';
 
 class DatabaseBackup {
-  Config config;
-
-  WpCli wpCli;
-
+  final CliUtil.Logger progressFactory = CliUtil.Logger.standard();
   final Logger logger = Logger();
+  final Config config;
+  final WpCli wpCli;
 
-  DatabaseBackup(this.config, this.wpCli);
+  late String phpBinary;
+  late String wpBinary;
 
-  backup() {
-    logger.debug('Creating database backup...');
-
-    String filename = '${config.projectDirectory}/backup/db-${ConsoleHelper.getDateSlug()}.mysql';
-    String phpBinary = 'php';
-    String wpBinary = wpCli.byType(config.wpBinaryType)!;
+  DatabaseBackup(this.config, this.wpCli) {
+    wpBinary = wpCli.byType(config.wpBinaryType)!;
+    phpBinary = 'php';
 
     if (config.usePhpWrapper) {
       phpBinary = 'php-wrapper';
     }
 
-    ConsoleHelper.checkWpBinary(wpBinary);
+    wpBinary = ConsoleHelper.checkWpBinary(wpBinary);
+  }
 
-    String exportCommand = 'db export --path="${config.projectDirectory}/public/wordpress" $filename';
-    CliUtil.Logger progressFactory = CliUtil.Logger.standard();
+  bool backup() {
+    logger.debug('Creating database backup...');
+
+    String base = config.projectDirectory!;
+    String slug = ConsoleHelper.getDateSlug();
+    String comment =
+        config.comment != null ? '--' + slugify(config.comment!) : '';
+    String filename = '$base/backup/db-$slug$comment.mysql';
+
     CliUtil.Progress progress = progressFactory.progress('Exporting');
 
     try {
-      ConsoleHelper().userdo(
-          '$phpBinary $wpBinary $exportCommand', config.backupUser);
+      _executeDbOperation('export', filename);
       progress.finish(showTiming: true);
     } catch (e) {
       progress.finish(showTiming: false);
       logger.error('Database export failed.');
       logger.debug(e.toString());
-      return;
+      return false;
     }
 
     logger.debug('Database exported. Compressing...');
@@ -50,9 +60,65 @@ class DatabaseBackup {
     progress.finish(showTiming: true);
     logger.debug('Done: Created database backup at $filename.gz.');
     logger.log(green('Database backup created.'));
+
+    return true;
   }
 
   restore() {
-    Logger().log('Database restoration not implemented yet.');
+    bool backupBeforeRestore = config.backupBeforeRestore;
+
+    // wizard: create backup before restore?
+    if (backupBeforeRestore) {
+      config.comment = 'before-restore';
+      bool success = backup();
+      if (!success) {
+        logger.error('Pre-restoration backup failed. Aborting.');
+        exit(ExitCodes.error);
+      }
+    }
+
+    File backupToRestore = FileSelector(
+      join(config.projectDirectory!, 'backup'),
+      filter: 'db-',
+      label: 'Please select a database backup to restore:',
+    ).ask();
+
+    if (Confirmation.confirm(
+        'Are you certain you want to restore the backup "$backupToRestore"? This operation might lead to data loss.')) {
+      Logger().debug('Will restore $backupToRestore');
+
+      CliUtil.Progress progress =
+          progressFactory.progress('Unpacking backup archive');
+      // We strip off the ".gz" extension, keeping the ".mysql"
+      String backupToRestorePath = backupToRestore.path;
+      String restoredFileName = basenameWithoutExtension(backupToRestorePath);
+      String restoredPath =
+          join(dirname(backupToRestorePath), restoredFileName);
+      ConsoleHelper().userdo('gunzip -kf $backupToRestorePath');
+      progress.finish(showTiming: true);
+
+      progress = progressFactory.progress('Restoring database');
+
+      try {
+        _executeDbOperation('import', restoredPath);
+        progress.finish(showTiming: true);
+      } catch (e) {
+        progress.finish(showTiming: false);
+        logger.error('Database import failed.');
+        logger.debug(e.toString());
+        File(restoredPath).deleteSync();
+        return;
+      }
+
+      File(restoredPath).deleteSync();
+      logger.debug('Done: Restored database backup from $backupToRestore.');
+      logger.log(green('Database backup restored.'));
+    }
+  }
+
+  _executeDbOperation(String operation, String filename) {
+    ConsoleHelper().userdo(
+        '$phpBinary $wpBinary db $operation --path="${config.projectDirectory}/public/wordpress" $filename',
+        config.backupUser);
   }
 }

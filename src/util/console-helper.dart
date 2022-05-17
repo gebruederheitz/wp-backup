@@ -15,7 +15,8 @@ class ConsoleHelper {
   }
 
   factory ConsoleHelper._factoryWithName(String name, [String? user]) {
-    var instance = _cache.putIfAbsent(name, () => ConsoleHelper._internal(name, user));
+    var instance =
+        _cache.putIfAbsent(name, () => ConsoleHelper._internal(name, user));
     if (user != null) {
       instance.setUser(user);
     }
@@ -38,29 +39,47 @@ class ConsoleHelper {
     }
   }
 
+  void userdoStart(String command, [String? workingDirectory, String? user]) {
+    var username = user != null ? user : this.user;
+    if (username != null && username != 'whoami'.firstLine) {
+      'sudo -s -u $username $command'.start(workingDirectory: workingDirectory);
+    } else {
+      command.start(workingDirectory: workingDirectory);
+    }
+  }
+
   String? userdoFirstLine(String command, [String? user]) {
     var username = user != null ? user : this.user;
 
     return 'sudo -s -u $username $command'.firstLine;
   }
 
-  static String? getDateSlug() {
-    return 'date +%Y-%m-%d-%H-%M'.firstLine;
+  static String getDateSlug() {
+    return 'date +%Y-%m-%d-%H-%M'.firstLine ?? '';
   }
 
-  static void checkWpBinary(String wpBinaryPath) {
+  static String checkWpBinary(String wpBinaryPath) {
     Logger l = Logger();
     l.debugContinuable('Testing wp binary at path $wpBinaryPath');
 
     var file = File(wpBinaryPath);
-    bool exists = file.existsSync();
+    bool fileExists = file.existsSync();
+    bool whichHasResult = false;
     // bool isExecutable = file.statSync().modeString()[2] == 'x';
-    // if (!(exists && isExecutable)) {
-    if (!(exists)) {
+    // if (!(fileExists && isExecutable)) {
+    if (!(fileExists)) {
+      if (which(wpBinaryPath).found) {
+        whichHasResult = true;
+        wpBinaryPath = which(wpBinaryPath).path!;
+      }
+    }
+
+    if (!(fileExists || whichHasResult)) {
       l.error('Custom wp-cli file does not exist or is not executable!');
       exit(2);
     }
 
     l.debugContinued(green(' Ok.'));
+    return wpBinaryPath;
   }
 }

@@ -36,7 +36,8 @@ class WpCli extends WpCliInterface.WpCli {
 
       l.debugContinued(' Ok.');
     } else {
-      l.debug('Current version of wp-cli already exists, skipping unpack operation.');
+      l.debug(
+          'Current version of wp-cli already exists, skipping unpack operation.');
     }
   }
 }

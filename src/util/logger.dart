@@ -51,4 +51,3 @@ class Logger {
     return debug(msg, forceNewline: false);
   }
 }
-
