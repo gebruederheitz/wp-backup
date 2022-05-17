@@ -60,8 +60,6 @@ $> wp-backup backup -na
 ### Dependencies
 
  - GNU coreutils
- - zip
- - gzip
  - mysqldump
  - php (CLI binary) or php-wrapper
 

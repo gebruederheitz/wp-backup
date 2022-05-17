@@ -5,6 +5,7 @@ import 'package:dcli/dcli.dart';
 import 'package:slugify/slugify.dart';
 
 import 'configuration/config.dart';
+import 'util/archiver.dart';
 import 'util/confirmation.dart';
 import 'util/console-helper.dart';
 import 'util/exit-codes.dart';
@@ -54,11 +55,12 @@ class DatabaseBackup {
     }
 
     logger.debug('Database exported. Compressing...');
-    progress = progressFactory.progress('Compressing');
-    ConsoleHelper().userdo('gzip -9 "$filename"');
+    progress = progressFactory.progress(
+        'Compressing. This might take a while and you might not see the progress indicator spinning.');
+    String archivePath = Archiver.gzipFile(filename);
 
     progress.finish(showTiming: true);
-    logger.debug('Done: Created database backup at $filename.gz.');
+    logger.debug('Done: Created database backup at $archivePath.');
     logger.log(green('Database backup created.'));
 
     return true;
@@ -87,14 +89,9 @@ class DatabaseBackup {
         'Are you certain you want to restore the backup "$backupToRestore"? This operation might lead to data loss.')) {
       Logger().debug('Will restore $backupToRestore');
 
-      CliUtil.Progress progress =
-          progressFactory.progress('Unpacking backup archive');
-      // We strip off the ".gz" extension, keeping the ".mysql"
-      String backupToRestorePath = backupToRestore.path;
-      String restoredFileName = basenameWithoutExtension(backupToRestorePath);
-      String restoredPath =
-          join(dirname(backupToRestorePath), restoredFileName);
-      ConsoleHelper().userdo('gunzip -kf $backupToRestorePath');
+      CliUtil.Progress progress = progressFactory.progress(
+          'Unpacking database backup archive. This might take a while and you might not see the progress indicator spinning.');
+      String restoredPath = Archiver.gunzip(backupToRestore);
       progress.finish(showTiming: true);
 
       progress = progressFactory.progress('Restoring database');
