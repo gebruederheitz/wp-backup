@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dcli/dcli.dart';
-import 'package:yaml/yaml.dart';
 
 import 'argument-parser.dart';
 import 'configuration/config.dart';
@@ -12,6 +12,7 @@ import 'util/exit-codes.dart';
 import 'util/logger.dart';
 import 'util/test-directory.dart';
 import 'wp-cli/wp-cli-interface.dart';
+import '../lib/src/dcli/resource/generated/resource_registry.g.dart';
 
 const debug = false;
 var parser;
@@ -81,10 +82,16 @@ class WpBackup {
   }
 
   static void showVersion() {
-    File pubspec = new File('pubspec.yaml');
-    String content = pubspec.readAsStringSync();
-    Map yaml = loadYaml(content);
-    String version = yaml['version'];
+    final String resourcePath = 'appinfo.json';
+    final path = join(Directory.systemTemp.path, resourcePath);
+    final appinfoResource = ResourceRegistry.resources[resourcePath]!;
+    appinfoResource.unpack(join(path));
+
+    final File appInfoFile = new File(path);
+    final String contents = appInfoFile.readAsStringSync();
+    final Map parsedContent = jsonDecode(contents);
+    final String version = parsedContent['version'];
+
     print(blue('wp-backup by /gebrüderheitz') + ' v$version');
     print('');
   }

@@ -17,6 +17,7 @@ plugins:
     in: package.json
     out:
       - "./pubspec.yaml"
+      - "./resource/appinfo.json"
 #  "@release-it/keep-a-changelog":
 #    filename: "CHANGELOG.md"
 #    addVersionUrl: true
