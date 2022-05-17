@@ -84,7 +84,6 @@ class Wizard {
     }
   }
 
-
   void _clarify(Map previousAnswers) {
     dialog = CLI_Dialog();
     this.previousAnswers = previousAnswers;
@@ -131,8 +130,10 @@ class Wizard {
   }
 
   void _applyClarificationToConfiguration(Map answers) {
-    String? previousAnswer = _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
-    if (_isDbBackup() && previousAnswer == WpCliPresetOptions[WpCliType.custom]) {
+    String? previousAnswer =
+        _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
+    if (_isDbBackup() &&
+        previousAnswer == WpCliPresetOptions[WpCliType.custom]) {
       config.wpBinary = answers[_getKey(ConfigurationOption.wpBinary)];
     }
 
@@ -153,10 +154,8 @@ class Wizard {
 
       if (_isDbBackup()) {
         if (config.wpBinary == null) {
-          var wpBinaryType = _getAnswerByOption(
-              answers,
-              ConfigurationOption.wpBinaryType
-          );
+          var wpBinaryType =
+              _getAnswerByOption(answers, ConfigurationOption.wpBinaryType);
 
           if (wpBinaryType == WpCliPresetOptions[WpCliType.bundled]) {
             config.wpBinaryType = WpCliType.bundled;
@@ -170,7 +169,8 @@ class Wizard {
         }
       }
     } else {
-      config.backupBeforeRestore = _getAnswerByOption(answers, ConfigurationOption.backupBeforeRestore);
+      config.backupBeforeRestore =
+          _getAnswerByOption(answers, ConfigurationOption.backupBeforeRestore);
     }
   }
 
@@ -192,7 +192,8 @@ class Wizard {
 
     if (config.comment == null) {
       String key = _getKey(ConfigurationOption.comment);
-      _makeQuestion(key, 'Would you like to add a tag / comment to the filename?', true);
+      _makeQuestion(
+          key, 'Would you like to add a tag / comment to the filename?', true);
 
       dialogOrder.add(key);
     }
@@ -202,7 +203,10 @@ class Wizard {
     if (_isBackup()) return;
 
     String key = _getKey(ConfigurationOption.backupBeforeRestore);
-    _makeQuestion(key, 'Shall we create a new backup of the status quo before restoring?', true);
+    _makeQuestion(
+        key,
+        'Shall we create a new backup of the status quo before restoring?',
+        true);
     dialogOrder.add(key);
   }
 
@@ -210,7 +214,8 @@ class Wizard {
     if (config.mode == null) {
       String key = 'mode';
 
-      _makeListQuestion(key, 'Select what it is you would like to do:', [Commands.backup, Commands.restore]);
+      _makeListQuestion(key, 'Select what it is you would like to do:',
+          [Commands.backup, Commands.restore]);
       dialogOrder.add(key);
     }
   }
@@ -284,7 +289,8 @@ class Wizard {
   void _maybeClarifyComment() {
     if (wantsComment) {
       String key = _getKey(ConfigurationOption.comment);
-      _makeQuestion(key, 'Please specify the tag / comment (will-be-slugified).');
+      _makeQuestion(
+          key, 'Please specify the tag / comment (will-be-slugified).');
       dialogOrder.add(key);
     }
   }
@@ -300,7 +306,8 @@ class Wizard {
   }
 
   void _maybeClarifyCustomWpBinary() {
-    String? previousAnswer = _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
+    String? previousAnswer =
+        _getAnswerByOption(previousAnswers, ConfigurationOption.wpBinaryType);
     if (previousAnswer == WpCliPresetOptions[WpCliType.custom]) {
       String key = _getKey(ConfigurationOption.wpBinary);
       _makeQuestion(key,
@@ -328,7 +335,8 @@ class Wizard {
       return true;
     }
 
-    if (_getAnswerByOption(answers, ConfigurationOption.wpBinaryType) == WpCliPresetOptions[WpCliType.custom]) {
+    if (_getAnswerByOption(answers, ConfigurationOption.wpBinaryType) ==
+        WpCliPresetOptions[WpCliType.custom]) {
       return true;
     }
 
@@ -344,7 +352,7 @@ class Wizard {
   }
 
   bool _isDbBackup() {
-    return config.mode == Commands.backup
-        && [OperationType.all, OperationType.database].contains(config.operation);
+    return config.mode == Commands.backup &&
+        [OperationType.all, OperationType.database].contains(config.operation);
   }
 }

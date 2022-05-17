@@ -22,7 +22,6 @@ class WpBackup {
     var options = parser.parseOptions(args);
     Config config = Config.fromOptions(options, wpCli);
 
-
     if (config.wantsHelp()) {
       showHelp(parser);
       exit(ExitCodes.ok);
@@ -33,7 +32,7 @@ class WpBackup {
       exit(ExitCodes.ok);
     }
 
-  if (config.wantsNoInteraction()) {
+    if (config.wantsNoInteraction()) {
       config.setNoInteractionDefaults(wpCli);
     } else {
       Wizard wizard = Wizard(config, wpCli);
@@ -53,7 +52,8 @@ class WpBackup {
     l.debug('Project directory: ${config.projectDirectory}');
     ConsoleHelper(config.backupUser);
 
-    if (config.mode == null || ![Commands.restore, Commands.backup].contains(config.mode)) {
+    if (config.mode == null ||
+        ![Commands.restore, Commands.backup].contains(config.mode)) {
       l.error('Invaid command. Try "wp-backup -h" for usage information.');
       exit(ExitCodes.commandNotFound);
     }
@@ -69,7 +69,8 @@ class WpBackup {
       }
     }
 
-    if ([OperationType.all, OperationType.userdata].contains(config.operation)) {
+    if ([OperationType.all, OperationType.userdata]
+        .contains(config.operation)) {
       UserdataBackup udb = UserdataBackup(config);
       if (config.mode == Commands.backup) {
         udb.backup();

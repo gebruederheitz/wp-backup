@@ -37,7 +37,8 @@ class DatabaseBackup {
 
     String base = config.projectDirectory!;
     String slug = ConsoleHelper.getDateSlug();
-    String comment = config.comment != null ? '--' + slugify(config.comment!) : '';
+    String comment =
+        config.comment != null ? '--' + slugify(config.comment!) : '';
     String filename = '$base/backup/db-$slug$comment.mysql';
 
     CliUtil.Progress progress = progressFactory.progress('Exporting');
@@ -82,14 +83,17 @@ class DatabaseBackup {
       label: 'Please select a database backup to restore:',
     ).ask();
 
-    if (Confirmation.confirm('Are you certain you want to restore the backup "$backupToRestore"? This operation might lead to data loss.')) {
+    if (Confirmation.confirm(
+        'Are you certain you want to restore the backup "$backupToRestore"? This operation might lead to data loss.')) {
       Logger().debug('Will restore $backupToRestore');
 
-      CliUtil.Progress progress = progressFactory.progress('Unpacking backup archive');
+      CliUtil.Progress progress =
+          progressFactory.progress('Unpacking backup archive');
       // We strip off the ".gz" extension, keeping the ".mysql"
       String backupToRestorePath = backupToRestore.path;
       String restoredFileName = basenameWithoutExtension(backupToRestorePath);
-      String restoredPath = join(dirname(backupToRestorePath), restoredFileName);
+      String restoredPath =
+          join(dirname(backupToRestorePath), restoredFileName);
       ConsoleHelper().userdo('gunzip -kf $backupToRestorePath');
       progress.finish(showTiming: true);
 
@@ -115,7 +119,6 @@ class DatabaseBackup {
   _executeDbOperation(String operation, String filename) {
     ConsoleHelper().userdo(
         '$phpBinary $wpBinary db $operation --path="${config.projectDirectory}/public/wordpress" $filename',
-        config.backupUser
-    );
+        config.backupUser);
   }
 }

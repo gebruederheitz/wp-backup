@@ -8,12 +8,11 @@ class FileSelector {
   final CLI_Dialog dialog = CLI_Dialog();
   final String directoryPath;
 
-  FileSelector(this.directoryPath,
-      {
-        String? filter,
-        String label = 'Please select a file:',
-      }
-    ) {
+  FileSelector(
+    this.directoryPath, {
+    String? filter,
+    String label = 'Please select a file:',
+  }) {
     List<String> files = [];
     if (filter != null) {
       ('ls -1h $directoryPath' | 'grep "$filter"').forEach((line) {
@@ -25,7 +24,8 @@ class FileSelector {
       });
     }
 
-    dialog.addQuestion({'question': label, 'options': files}, key, is_list: true);
+    dialog
+        .addQuestion({'question': label, 'options': files}, key, is_list: true);
   }
 
   File ask() {

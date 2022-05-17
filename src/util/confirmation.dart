@@ -18,10 +18,8 @@ class Confirmation {
   }
 
   static bool _ask(String question) {
-    return CLI_Dialog(
-      booleanQuestions: [
-        [question, key]
-      ]
-    ).ask()[key];
+    return CLI_Dialog(booleanQuestions: [
+      [question, key]
+    ]).ask()[key];
   }
 }

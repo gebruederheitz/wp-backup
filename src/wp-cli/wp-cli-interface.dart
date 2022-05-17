@@ -24,7 +24,8 @@ abstract class WpCli {
         if (isBundled) {
           return path;
         }
-        Logger().error('This version of wp-backup does not contain a bundled wp-cli. Please use another --wp-type.');
+        Logger().error(
+            'This version of wp-backup does not contain a bundled wp-cli. Please use another --wp-type.');
         return exit(2);
       case WpCliType.directory:
         return join(File(Platform.script.path).parent.path, getFilename());
@@ -33,7 +34,6 @@ abstract class WpCli {
       case WpCliType.path:
       default:
         return getFilename();
-
     }
   }
 

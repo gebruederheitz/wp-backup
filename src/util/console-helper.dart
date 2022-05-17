@@ -15,7 +15,8 @@ class ConsoleHelper {
   }
 
   factory ConsoleHelper._factoryWithName(String name, [String? user]) {
-    var instance = _cache.putIfAbsent(name, () => ConsoleHelper._internal(name, user));
+    var instance =
+        _cache.putIfAbsent(name, () => ConsoleHelper._internal(name, user));
     if (user != null) {
       instance.setUser(user);
     }

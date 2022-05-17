@@ -21,11 +21,13 @@ class UserdataBackup {
   /// @return true indicates success.
   bool backup() {
     logger.debug("Backing up userdata directory...");
-    CliUtil.Progress progress = progressFactory.progress("Creating ZIP archive of userdata. This might take a while.");
+    CliUtil.Progress progress = progressFactory
+        .progress("Creating ZIP archive of userdata. This might take a while.");
 
     String base = config.projectDirectory!;
     String slug = ConsoleHelper.getDateSlug();
-    String comment = config.comment != null ? '--' + slugify(config.comment!) : '';
+    String comment =
+        config.comment != null ? '--' + slugify(config.comment!) : '';
     String filename = "$base/backup/userdata-$slug$comment.zip";
     String zipOptions = "-9 -r -p";
 
@@ -38,10 +40,8 @@ class UserdataBackup {
     }
 
     try {
-      ConsoleHelper().userdoStart(
-          'zip $zipOptions "$filename" .',
-          '${config.projectDirectory}/userdata'
-      );
+      ConsoleHelper().userdoStart('zip $zipOptions "$filename" .',
+          '${config.projectDirectory}/userdata');
       progress.finish(showTiming: true);
     } catch (e) {
       logger.error('Userdata backup failed!');
@@ -74,9 +74,11 @@ class UserdataBackup {
       label: 'Please select a userdata backup to restore:',
     ).ask();
 
-    if (Confirmation.confirm('Are you certain you want to restore the backup "$backupToRestore"? This operation might lead to data loss.')) {
+    if (Confirmation.confirm(
+        'Are you certain you want to restore the backup "$backupToRestore"? This operation might lead to data loss.')) {
       Logger().debug('Will restore $backupToRestore');
-      CliUtil.Progress progress = progressFactory.progress('Extracting archive');
+      CliUtil.Progress progress =
+          progressFactory.progress('Extracting archive');
 
       String tempPath = join(config.projectDirectory!, 'userdata_restore');
       Directory tempDir = Directory(tempPath);
@@ -88,7 +90,8 @@ class UserdataBackup {
 
       progress = progressFactory.progress('Moving files into place');
       String targetPath = join(config.projectDirectory!, 'userdata');
-      String conveniencePath = join(config.projectDirectory!, 'userdata-previous');
+      String conveniencePath =
+          join(config.projectDirectory!, 'userdata-previous');
 
       /* @FIXME: atomic "&&" operation seems impossible with dcli */
       ConsoleHelper().userdo('mv $targetPath $conveniencePath');
