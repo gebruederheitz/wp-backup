@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dcli/dcli.dart';
+import 'package:yaml/yaml.dart';
 
 import 'argument-parser.dart';
 import 'configuration/config.dart';
@@ -12,7 +13,6 @@ import 'util/logger.dart';
 import 'util/test-directory.dart';
 import 'wp-cli/wp-cli-interface.dart';
 
-const version = '1.0.0';
 const debug = false;
 var parser;
 
@@ -81,6 +81,10 @@ class WpBackup {
   }
 
   static void showVersion() {
+    File pubspec = new File('pubspec.yaml');
+    String content = pubspec.readAsStringSync();
+    Map yaml = loadYaml(content);
+    String version = yaml['version'];
     print(blue('wp-backup by /gebrüderheitz') + ' v$version');
     print('');
   }
