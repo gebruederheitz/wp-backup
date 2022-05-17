@@ -42,6 +42,11 @@ The application comes in three variations:
    larger in file size.
  - "packaged" `wp-backup-pack.tar.gz`: A gzipped tarball containing the vanilla script and the wp-cli PHAR archive.
 
+In each case, the `-h` flag will show you a list of available options and
+some usage information. You can however just execute the program without any
+options and have the wizard guide you through creating or restoring your
+Wodpress backups.
+
 ```shell
 # Start the wizard
 $> wp-backup
