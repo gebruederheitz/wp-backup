@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:dcli/dcli.dart';
 
-import '../util/logger.dart';
-import '../wp-cli/wp-cli-interface.dart';
+import 'yaml-configuration.dart';
 
 enum OperationType {
   all,
@@ -17,10 +14,8 @@ enum ConfigurationOption {
   projectDirectory,
   backupUser,
   verbose,
-  usePhpWrapper,
-  phpBinary,
-  wpBinaryType,
-  wpBinary,
+  useConfigFile,
+  configFilePath,
   operation,
   operationAll,
   operationDb,
@@ -59,6 +54,21 @@ const Map<ConfigurationOption, OptionParameter> OptionParameters =
     'v',
     defaultValue: false,
     help: 'Display version and exit',
+  ),
+  ConfigurationOption.useConfigFile: OptionParameter(
+    'config',
+    'c',
+    help:
+        'Whether to use a .wp-backup.yaml configuration file. Will look in the project directory unless you provide a custom path using --config-file',
+    defaultValue: false,
+  ),
+  ConfigurationOption.configFilePath: OptionParameter(
+    'config-file',
+    'C',
+    // @TODO: Make sure this is accurate
+    help:
+        'The path to a custom .wp-backup.yaml configuration file. Implies --config.',
+    valueHelp: '<path/to/.wp-backup.yaml>',
   ),
   ConfigurationOption.projectDirectory: OptionParameter(
     'directory',
@@ -106,41 +116,13 @@ no-interaction mode.
       OptionParameter('db', 'D', defaultValue: false),
   ConfigurationOption.operationUserdata:
       OptionParameter('userdata', 'U', defaultValue: false),
-  ConfigurationOption.usePhpWrapper: OptionParameter(
-    'php-wrapper',
-    'P',
-    separatorBefore: '--- Database backup settings ----------',
-    defaultValue: false,
-    help: '''
-Instead of using a (custom) PHP binary, use php-wrapper instead (must be on the 
-\$PATH).
-    ''',
-  ),
-  ConfigurationOption.phpBinary:
-      OptionParameter('php', 'p', defaultValue: null),
-  ConfigurationOption.wpBinaryType: OptionParameter(
-    'wp-cli-type',
-    'w',
-    valueHelp: 'bundled|path|directory',
-    help: '''
-Whether to use a wp-cli binary on the \$PATH, in the script directory or the 
-bundled version (depending on version). For a custom path, use --wp--cli-path.
-  ''',
-  ),
-  ConfigurationOption.wpBinary: OptionParameter(
-    'wp-cli-path',
-    'W',
-    defaultValue: null,
-    help: 'A custom wp-cli executable PHAR archive to use for DB exporting.',
-    valueHelp: 'path-to-wp-cli.phar',
-  ),
   ConfigurationOption.comment: OptionParameter(
-    'comment',
-    'c',
+    'tag',
+    't',
     separatorBefore: '--- Backup settings -------------------',
     defaultValue: null,
     help:
-        'A comment or tag to append to the backup file (not available in restore mode).',
+        'A tag (or comment) to append to the backup file (not available in restore mode).',
     valueHelp: '<tag-or-comment>',
   ),
   ConfigurationOption.backupBeforeRestore: OptionParameter(
@@ -157,19 +139,17 @@ class Config {
 
   OperationType? operation;
 
-  String? projectDirectory;
+  late String projectDirectory;
 
   String? backupUser;
 
   bool verbose = false;
 
-  bool usePhpWrapper = false;
+  bool useConfigFile = false;
 
-  WpCliType? wpBinaryType;
+  String? configFilePath = null;
 
-  String? wpBinary;
-
-  String? phpBinary;
+  bool hasProjectDirectoryBeenEdited = false;
 
   String? comment;
 
@@ -177,25 +157,33 @@ class Config {
 
   ArgResults options;
 
-  Config.fromOptions(this.options, WpCli wpCli) {
+  YamlConfiguration? configurationFile = null;
+
+  Config.fromOptions(this.options) {
+    if (getParameterValue(ConfigurationOption.projectDirectory) != null) {
+      projectDirectory =
+          getParameterValue(ConfigurationOption.projectDirectory);
+      hasProjectDirectoryBeenEdited = true;
+    } else {
+      projectDirectory = 'realpath .'.firstLine ?? '.';
+    }
+
+    String? configFilePath =
+        getParameterValue(ConfigurationOption.configFilePath);
+    if (configFilePath != null) {
+      configurationFile = YamlConfiguration.fromFileName(this, configFilePath);
+    } else if (getParameterValue(ConfigurationOption.useConfigFile)) {
+      configurationFile = YamlConfiguration.discover(this);
+    }
+
     parseOperation();
 
     if (options.command?.name != null) {
       mode = options.command!.name;
     }
 
-    if (getParameterValue(ConfigurationOption.projectDirectory) != null) {
-      projectDirectory =
-          getParameterValue(ConfigurationOption.projectDirectory);
-    }
-
     if (getParameterValue(ConfigurationOption.verbose) == true) {
       verbose = true;
-    }
-
-    parseWpBinary(wpCli);
-    if (getParameterValue(ConfigurationOption.usePhpWrapper)) {
-      usePhpWrapper = true;
     }
 
     if (getParameterValue(ConfigurationOption.comment) != null) {
@@ -225,33 +213,6 @@ class Config {
     }
   }
 
-  parseWpBinary(WpCli wpCli) {
-    if (getParameterValue(ConfigurationOption.wpBinaryType) != null) {
-      String? providedType =
-          getParameterValue(ConfigurationOption.wpBinaryType);
-      if (providedType == 'bundled') {
-        if (!wpCli.isBundled) {
-          Logger().error(
-              'This version of wp-backup does not contain a bundled wp-cli. Please use another --wp-type.');
-          exit(2);
-        }
-        wpBinaryType = WpCliType.bundled;
-      } else if (providedType == 'path') {
-        wpBinaryType = WpCliType.path;
-      } else if (providedType == 'directory') {
-        wpBinaryType = WpCliType.directory;
-      } else {
-        Logger().error(
-            'Invalid wp-cli type provided. Must be one of [bundled|path|directory].');
-        exit(2);
-      }
-    } else if (getParameterValue(ConfigurationOption.wpBinary) != null) {
-      wpBinaryType = WpCliType.custom;
-      wpBinary = getParameterValue(ConfigurationOption.wpBinary);
-      wpCli.customPath = wpBinary;
-    }
-  }
-
   static String getParameter(ConfigurationOption option) {
     return OptionParameters[option]!.long;
   }
@@ -264,14 +225,9 @@ class Config {
     return this.operation != null;
   }
 
-  setNoInteractionDefaults(WpCli wpCli) {
-    if (projectDirectory == null) {
-      projectDirectory = 'realpath .'.firstLine;
-    }
-    if (wpBinaryType == null) {
-      wpBinaryType = wpCli.isBundled ? WpCliType.bundled : WpCliType.path;
-    }
-  }
+  /// Apply any default values that might be missing when running in
+  /// no-interaction mode
+  setNoInteractionDefaults() {}
 
   bool wantsHelp() {
     var optionResult = getParameterValue(ConfigurationOption.help);

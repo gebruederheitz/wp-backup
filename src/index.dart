@@ -11,17 +11,16 @@ import 'util/console-helper.dart';
 import 'util/exit-codes.dart';
 import 'util/logger.dart';
 import 'util/test-directory.dart';
-import 'wp-cli/wp-cli-interface.dart';
 import '../lib/src/dcli/resource/generated/resource_registry.g.dart';
 
 const debug = false;
 var parser;
 
 class WpBackup {
-  static void run(List<String> args, WpCli wpCli) {
+  static void run(List<String> args) {
     ArgumentParser parser = ArgumentParser();
     var options = parser.parseOptions(args);
-    Config config = Config.fromOptions(options, wpCli);
+    Config config = Config.fromOptions(options);
 
     if (config.wantsHelp()) {
       showHelp(parser);
@@ -34,9 +33,9 @@ class WpBackup {
     }
 
     if (config.wantsNoInteraction()) {
-      config.setNoInteractionDefaults(wpCli);
+      config.setNoInteractionDefaults();
     } else {
-      Wizard wizard = Wizard(config, wpCli);
+      Wizard wizard = Wizard(config);
       config = wizard.run();
     }
 
@@ -48,21 +47,19 @@ class WpBackup {
     l.debug('Command: ${config.mode}');
     l.debug('Operation: ${config.operation}');
     l.debug('Verbose: ${config.verbose}');
-    l.debug('WP-CLI type: ${config.wpBinaryType}');
-    l.debug('Custom WP-CLI: ${config.wpBinary}');
     l.debug('Project directory: ${config.projectDirectory}');
     ConsoleHelper(config.backupUser);
 
     if (config.mode == null ||
         ![Commands.restore, Commands.backup].contains(config.mode)) {
-      l.error('Invaid command. Try "wp-backup -h" for usage information.');
+      l.error('Invalid command. Try "wp-backup -h" for usage information.');
       exit(ExitCodes.commandNotFound);
     }
     testDirectory(config.projectDirectory);
 
     if ([OperationType.all, OperationType.database]
         .contains(config.operation)) {
-      DatabaseBackup dbb = DatabaseBackup(config, wpCli);
+      DatabaseBackup dbb = DatabaseBackup(config);
       if (config.mode == Commands.backup) {
         dbb.backup();
       } else {
