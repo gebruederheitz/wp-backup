@@ -10,3 +10,4 @@ pubspec.yaml
 wp-backup.sh
 .dart_tool
 .idea/
+.nvmrc
