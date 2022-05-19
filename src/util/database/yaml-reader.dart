@@ -9,16 +9,22 @@ class YamlReader implements DbConfigReader {
   YamlReader(this.yamlContent);
 
   DatabaseConfiguration? read() {
-    Map? rawDbConfig = yamlContent['db'] ?? null;
+    var rawDbConfig = yamlContent['db'] ?? null;
 
     if (rawDbConfig == null) {
       return null;
     }
 
-    return new DatabaseConfiguration(
-        rawDbConfig['user'] ?? '', rawDbConfig['pass'] ?? '',
-        database: rawDbConfig['database'] ?? null,
-        host: rawDbConfig['host'] ?? null,
-        tablePrefix: rawDbConfig['prefix'] ?? null);
+    if (rawDbConfig is String) {
+      return new DatabaseConfiguration.fromDbUrl(rawDbConfig);
+    }
+
+    if (rawDbConfig is Map) {
+      return new DatabaseConfiguration(
+          rawDbConfig['user'] ?? '', rawDbConfig['pass'] ?? '',
+          database: rawDbConfig['database'] ?? null,
+          host: rawDbConfig['host'] ?? null,
+          tablePrefix: rawDbConfig['prefix'] ?? null);
+    }
   }
 }

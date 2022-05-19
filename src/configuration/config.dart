@@ -1,5 +1,6 @@
 import 'package:dcli/dcli.dart';
 
+import '../model/database-configuration.dart';
 import 'yaml-configuration.dart';
 
 enum OperationType {
@@ -21,6 +22,7 @@ enum ConfigurationOption {
   operationDb,
   operationUserdata,
   noInteraction,
+  databaseUrl,
   comment,
   backupBeforeRestore,
 }
@@ -58,8 +60,11 @@ const Map<ConfigurationOption, OptionParameter> OptionParameters =
   ConfigurationOption.useConfigFile: OptionParameter(
     'config',
     'c',
-    help:
-        'Whether to use a .wp-backup.yaml configuration file. Will look in the project directory unless you provide a custom path using --config-file',
+    separatorBefore: '--- Basic setup -----------------------',
+    help: '''
+Whether to use a .wp-backup.yaml configuration file. Will look in the project 
+directory unless you provide a custom path using --config-file.
+    ''',
     defaultValue: false,
   ),
   ConfigurationOption.configFilePath: OptionParameter(
@@ -68,30 +73,35 @@ const Map<ConfigurationOption, OptionParameter> OptionParameters =
     // @TODO: Make sure this is accurate
     help:
         'The path to a custom .wp-backup.yaml configuration file. Implies --config.',
-    valueHelp: '<path/to/.wp-backup.yaml>',
+    valueHelp: 'path/to/.wp-backup.yaml',
   ),
   ConfigurationOption.projectDirectory: OptionParameter(
     'directory',
     'd',
-    valueHelp: '</path/to/project>',
+    valueHelp: '/path/to/project',
     help: '''
 The directory to run in. This is the directory that contains backup/, userdata/ 
 and public/ directories. Defaults to the current working directory in 
 no-interaction mode.
     ''',
   ),
-  ConfigurationOption.verbose: OptionParameter(
-    'verbose',
-    'V',
-    defaultValue: false,
-    help: 'More output',
-  ),
   ConfigurationOption.backupUser: OptionParameter(
     'user',
     'u',
     defaultValue: null,
     help: 'The user under which to operate.',
-    valueHelp: '<username>',
+    valueHelp: 'username',
+  ),
+  ConfigurationOption.databaseUrl: OptionParameter('database-url', 'x',
+      help:
+          'Allows you to configure the database connection through a URL-style string.',
+      valueHelp: 'mysql://user:pass@localhost/db'),
+  ConfigurationOption.verbose: OptionParameter(
+    'verbose',
+    'V',
+    separatorBefore: '--- Output control --------------------',
+    defaultValue: false,
+    help: 'More output',
   ),
   ConfigurationOption.noInteraction: OptionParameter(
     'no-interaction',
@@ -123,7 +133,7 @@ no-interaction mode.
     defaultValue: null,
     help:
         'A tag (or comment) to append to the backup file (not available in restore mode).',
-    valueHelp: '<tag-or-comment>',
+    valueHelp: 'tag-or-comment',
   ),
   ConfigurationOption.backupBeforeRestore: OptionParameter(
     'backup-before',
@@ -159,6 +169,8 @@ class Config {
 
   YamlConfiguration? configurationFile = null;
 
+  DatabaseConfiguration? dbConfig = null;
+
   Config.fromOptions(this.options) {
     if (getParameterValue(ConfigurationOption.projectDirectory) != null) {
       projectDirectory =
@@ -188,6 +200,11 @@ class Config {
 
     if (getParameterValue(ConfigurationOption.comment) != null) {
       comment = getParameterValue(ConfigurationOption.comment);
+    }
+
+    if (getParameterValue(ConfigurationOption.databaseUrl) != null) {
+      var databaseUrl = getParameterValue(ConfigurationOption.databaseUrl);
+      dbConfig = DatabaseConfiguration.fromDbUrl(databaseUrl);
     }
 
     backupUser =

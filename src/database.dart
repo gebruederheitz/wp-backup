@@ -25,8 +25,8 @@ class DatabaseBackup {
   late String mysql;
 
   DatabaseBackup(this.config) {
-    DatabaseConfiguration? dbConfig = null;
-    if (this.config.configurationFile is YamlConfiguration) {
+    DatabaseConfiguration? dbConfig = config.dbConfig;
+    if (dbConfig == null &&this.config.configurationFile is YamlConfiguration) {
       Logger().debug('Checking YAML configuration for database config...');
       dbConfig = YamlReader(this.config.configurationFile!.yaml).read();
     }

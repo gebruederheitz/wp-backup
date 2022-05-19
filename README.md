@@ -126,10 +126,37 @@ db:
 
 Any value not set will fall back to its default (see above); user and password are always required.
 
+You can also use the YAML config to provide a "database URL":
+
+```yaml
+db: mysql://user:pass@host:port/db/prefix
+```
+
 
 ##### DB-URL
 
--- not implemented --
+You can also provide a database URL string on the command line, overriding any settings read from dotenv or YAML:
+
+```shell
+# Create a database backup tagged "--testing-db-url-setup" without running the
+# wizard for additional configuration on the database "db" on "host:port".
+$> wp-backup backup -Dn -x mysql://user:pass@host:port/db/prefix -c "testing db url setup" 
+```
+
+Some parts of this URL-style string are optional:
+
+```shell
+# the mysql:// prefix is optional 
+user:pass@host
+# the username, password and hostname must always be provided
+mysql://user:pass@host
+# the port can be omitted
+mysql://user:pass@host/db
+# in order to supply a table prefix, the database name must be provided
+mysql://user:pass@host/db/prefix
+mysql://user:pass@host:port/db
+```
+
 
 ## Development
 

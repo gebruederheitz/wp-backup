@@ -31,7 +31,7 @@ class DatabaseConfiguration {
     if (re.hasMatch(dbUrl)) {
       var matches = re.firstMatch(dbUrl)!;
       this.user = matches.namedGroup('user')!;
-      this.password = matches.namedGroup('password')!;
+      this.password = matches.namedGroup('pass')!;
       this.host = matches.namedGroup('host')!;
 
       this.database = matches.namedGroup('database') ?? DEFAULT_DATABASE;
