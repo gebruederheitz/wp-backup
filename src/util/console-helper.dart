@@ -39,7 +39,7 @@ class ConsoleHelper {
     }
   }
 
-  void userdoStart(String command, [String? workingDirectory, String? user]) {
+  void userdoStart(String command, {String? workingDirectory, String? user}) {
     var username = user != null ? user : this.user;
     if (username != null && username != 'whoami'.firstLine) {
       'sudo -s -u $username $command'.start(workingDirectory: workingDirectory);
@@ -56,30 +56,5 @@ class ConsoleHelper {
 
   static String getDateSlug() {
     return 'date +%Y-%m-%d-%H-%M'.firstLine ?? '';
-  }
-
-  static String checkWpBinary(String wpBinaryPath) {
-    Logger l = Logger();
-    l.debugContinuable('Testing wp binary at path $wpBinaryPath');
-
-    var file = File(wpBinaryPath);
-    bool fileExists = file.existsSync();
-    bool whichHasResult = false;
-    // bool isExecutable = file.statSync().modeString()[2] == 'x';
-    // if (!(fileExists && isExecutable)) {
-    if (!(fileExists)) {
-      if (which(wpBinaryPath).found) {
-        whichHasResult = true;
-        wpBinaryPath = which(wpBinaryPath).path!;
-      }
-    }
-
-    if (!(fileExists || whichHasResult)) {
-      l.error('Custom wp-cli file does not exist or is not executable!');
-      exit(2);
-    }
-
-    l.debugContinued(green(' Ok.'));
-    return wpBinaryPath;
   }
 }

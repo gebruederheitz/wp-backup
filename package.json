@@ -4,8 +4,7 @@
   "description": "Create database and userdata backups for staggered Wordpress releases.",
   "main": "",
   "bin": {
-    "wp-backup": "build/wp-backup",
-    "wp-backup-bundle": "build/wp-backup-bundle"
+    "wp-backup": "build/wp-backup"
   },
   "repository": {
     "type": "git",

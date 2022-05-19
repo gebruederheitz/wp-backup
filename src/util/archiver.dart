@@ -13,7 +13,7 @@ class Archiver {
     return output.path;
   }
 
-  static String gunzip(File archive) {
+  static File gunzip(File archive) {
     String archivePath = archive.path;
     // We strip off the ".gz" extension, keeping the ".mysql"
     String restoredFileName = basenameWithoutExtension(archivePath);
@@ -24,6 +24,6 @@ class Archiver {
     GZipDecoder().decodeStream(inputStream, outputStream);
     outputStream.close();
 
-    return outputStream.path;
+    return File(outputStream.path);
   }
 }

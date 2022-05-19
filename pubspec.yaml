@@ -10,3 +10,4 @@ dependencies:
   dcli: ^1.30.2
   progress_bar: ^1.0.0
   slugify: ^2.0.0
+  yaml: ^3.1.1

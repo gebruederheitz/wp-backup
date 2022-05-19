@@ -26,13 +26,13 @@ class UserdataBackup {
     logger.debug("Backing up userdata directory...");
     logger.log('Creating ZIP archive of userdata. This might take a while.');
 
-    final String base = config.projectDirectory!;
+    final String base = config.projectDirectory;
     final String slug = ConsoleHelper.getDateSlug();
     final String comment =
         config.comment != null ? '--' + slugify(config.comment!) : '';
     final String filename = "$base/backup/userdata-$slug$comment.zip";
     final Directory dir =
-        new Directory(join(config.projectDirectory!, 'userdata'));
+        new Directory(join(config.projectDirectory, 'userdata'));
     final ProgressBar progress =
         new ProgressBar('[:bar] :percent (ETA :etas)', total: 100, width: 50);
 
@@ -68,7 +68,7 @@ class UserdataBackup {
     }
 
     File backupToRestore = FileSelector(
-      join(config.projectDirectory!, 'backup'),
+      join(config.projectDirectory, 'backup'),
       filter: 'userdata-',
       label: 'Please select a userdata backup to restore:',
     ).ask();
@@ -82,7 +82,7 @@ class UserdataBackup {
           total: 100,
           width: 50);
 
-      String tempPath = join(config.projectDirectory!, 'userdata_restore');
+      String tempPath = join(config.projectDirectory, 'userdata_restore');
       Directory tempDir = Directory(tempPath);
       if (tempDir.existsSync()) {
         tempDir.deleteSync(recursive: true);
@@ -95,9 +95,9 @@ class UserdataBackup {
       });
 
       final progress = progressFactory.progress('Moving files into place');
-      String targetPath = join(config.projectDirectory!, 'userdata');
+      String targetPath = join(config.projectDirectory, 'userdata');
       String conveniencePath =
-          join(config.projectDirectory!, 'userdata-previous');
+          join(config.projectDirectory, 'userdata-previous');
 
       /* @FIXME: atomic "&&" operation seems impossible with dcli */
       ConsoleHelper().userdo('mv $targetPath $conveniencePath');
