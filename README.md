@@ -72,6 +72,9 @@ $> wp-backup backup -d ~/projects/my-wp-site/htdocs
 # Skip the wizard, don't ask questions: Run a backup of userdata & DB in the 
 # current directory
 $> wp-backup backup -na
+
+# Use the local configuration file for a quick pre-configured backup
+$> wp-backup -c
 ```
 
 ### Dependencies
@@ -81,6 +84,88 @@ $> wp-backup backup -na
 
 
 ### Configuration
+
+In essence you can use `wp-backup` in three ways: The easiest to get started is to simply run the application without 
+any parameters and let the wizard guide you through the process. The only option you can not set through the wizard is
+`-v`/ `--verbose`.
+
+Taking a look at the command line options by running `wp-backup -h`, you can skip the wizard (in part or completely) by
+providing any of these options. Let's say you know you want to _create_ a backup (not restore one), and you only want
+a database backup (not a userdata one). But you can not be bothered to look through all the available options and
+decide which ones you might also need: You can just run `wp-backup backup -D`. Now the wizard will skip the questions
+about what mode to use and which operation to perform and only ask questions that might still be relevant.
+But you might just as well know exactly that you want a full backup created under the user `wpuser` for the WP instance
+at `/home/wpuser/website` with the tag `quick-fallback-before-v2.0` – in this case the `-n` or `--no-interaction` flag
+is your friend, as it will skip the wizard completely (and apply sensible defaults to any settings you haven't 
+provided). The result might look like this:
+
+```shell
+$> wp-backup backup-an -u wpuser -d /home/wpuser/website -t "quick fallback before v2.0"
+```
+
+This sort of setup is ideal for CI environments before deployments as well.
+
+The third way, particularly useful for regularly reoccurring backups, is to create a configuration file. 
+
+#### YAML configuration
+
+This file has to be called `.wp-backup.yaml` and must contain a valid YAML document. Here's an example structure 
+outlining all the valid settings:
+
+```yaml
+projectDir: /path/to/project   # Analogous to -d / --directory. Default current working directory.
+operation: all                 # [all|database|userdata], analogous to -o / --operation. Default 'all' when 
+                               # --no-interaction or "wizard: false" are set.
+verbose: true                  # Whether to enable verbose output, analogous to -V / --verbose. Default false.
+backupUser: whoami             # The user to perform system calls under. Analogous to -u / --user. Default current user.
+wizard: false                  # A toggle that allows you to always skip the wizard with this file when set 
+                               # to "false". Default true.
+backupBeforeRestore: true      # Always create a backup before restoring one. Analogous to -b / --backup-before. 
+                               # Default false.
+askForTag: false               # Default true. Setting this to "false" will always skip the question about whether to
+                               # set a tag / comment in the wizard, keeping the focus on fewer, possibly more important
+                               # questions. Default true.
+db: mysql://user:pass@host     # See "Database config" below. Defaults to reading dotenv. Accepts either a "database 
+                               # URL" or a map of setting keys and values.
+```
+
+Passing the `-c` / `--config` flag will make the application look for `.wp-backup.yaml` in the current working 
+directory. You can also pass the path to a specific file outside the cwd via the `-C` / `--config-file` option:
+
+```shell
+$> wp-backup restore -C ./conf/.wp-backup.weekly.yaml
+$> wp-backup --config-file=/etc/backup/wp-backup/daily.yaml
+
+# Parameters set in the configuration file can we overridden by command line options:
+$> wp-back backup -c --verbose --user=different_user
+```
+
+To make full use of the configuration file, `wp-backup` has a special syntax that allows you to create quick backups
+based on that configuration: When no mode / command (i.e. `backup` or `restore`) is given and on of 
+`-c|-C|--config|--config-file` is present, the mode will automatically be set to `backup`. Thus, with a configuration
+file like the following:
+
+```yaml
+projectDir: /home/wpuser/website
+backupUser: wpuser
+wizard: false
+operation: database
+db: mysql://wpdb_u:h4xx0rZ@127.0.0.1:3306/wpdb
+```
+
+you can call `wp-backup -c` and achieve the same result as with
+
+```shell
+$> wp-backup backup -Dn -u wpuser -d /home/wpuser/website -x mysql://wpdb_u:h4xx0rZ@127.0.0.1:3306/wpdb
+```
+
+You can still use the configuration file in order to, for example, restore a backup:
+
+```shell
+# Will give you list of backups you might restore and restore it using the above
+# settings for project directory, shell user, operation and database.
+$> wp-backup restore -c
+```
 
 #### Database config
 
@@ -110,8 +195,8 @@ Any value not set will fall back to its default; user and password are always re
 
 ##### YAML
 
-Pass the `-c` or `--config` flag to read the `.wp-backup.yaml` from the current working directory. With the option 
-`-C <path>` or `--config-file=<path>` you can use a file in a different location.
+You may also explicitly configure the database connection, either using a ["database URL"](#db-url) on the command
+line, or by adding a section to your [YAML configuration file](#yaml-configuration) like this:
 
 ```yaml
 # .wp-backup.yaml
@@ -126,7 +211,7 @@ db:
 
 Any value not set will fall back to its default (see above); user and password are always required.
 
-You can also use the YAML config to provide a "database URL":
+You can also use the YAML config to provide a "database URL" (details below):
 
 ```yaml
 db: mysql://user:pass@host:port/db/prefix

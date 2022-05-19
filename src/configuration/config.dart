@@ -1,6 +1,7 @@
 import 'package:dcli/dcli.dart';
 
 import '../model/database-configuration.dart';
+import '../util/logger.dart';
 import 'yaml-configuration.dart';
 
 enum OperationType {
@@ -155,6 +156,8 @@ class Config {
 
   bool verbose = false;
 
+  bool noInteraction = false;
+
   bool useConfigFile = false;
 
   String? configFilePath = null;
@@ -162,6 +165,8 @@ class Config {
   bool hasProjectDirectoryBeenEdited = false;
 
   String? comment;
+
+  bool neverAskForComment = false;
 
   bool backupBeforeRestore = false;
 
@@ -180,13 +185,20 @@ class Config {
       projectDirectory = 'realpath .'.firstLine ?? '.';
     }
 
-    String? configFilePath =
+    if (getParameterValue(ConfigurationOption.useConfigFile) ||
+        getParameterValue(ConfigurationOption.configFilePath) != null) {
+      useConfigFile = true;
+    }
+
+    final String? configFilePath =
         getParameterValue(ConfigurationOption.configFilePath);
     if (configFilePath != null) {
       configurationFile = YamlConfiguration.fromFileName(this, configFilePath);
     } else if (getParameterValue(ConfigurationOption.useConfigFile)) {
       configurationFile = YamlConfiguration.discover(this);
     }
+
+    configurationFile?.parse();
 
     parseOperation();
 
@@ -198,7 +210,8 @@ class Config {
       verbose = true;
     }
 
-    if (getParameterValue(ConfigurationOption.comment) != null) {
+    if (!neverAskForComment &&
+        getParameterValue(ConfigurationOption.comment) != null) {
       comment = getParameterValue(ConfigurationOption.comment);
     }
 
@@ -212,6 +225,14 @@ class Config {
 
     if (getParameterValue(ConfigurationOption.backupBeforeRestore) == true) {
       backupBeforeRestore = true;
+    }
+
+    final wantsNoInteraction =
+        getParameterValue(ConfigurationOption.noInteraction);
+    if (wantsNoInteraction == true) {
+      Logger().log(
+          'Wants no interaction cli: $wantsNoInteraction, previous: $noInteraction');
+      noInteraction = wantsNoInteraction;
     }
   }
 
@@ -227,6 +248,8 @@ class Config {
       this.operation = OperationType.userdata;
     } else if (getParameterValue(ConfigurationOption.operationAll)) {
       this.operation = OperationType.all;
+    } else {
+      Logger().log(grey('no cli operation given'));
     }
   }
 
@@ -235,24 +258,23 @@ class Config {
   }
 
   getParameterValue(ConfigurationOption option) {
-    return this.options[Config.getParameter(option)];
+    return options[Config.getParameter(option)];
   }
 
   hasOperation() {
-    return this.operation != null;
+    return operation != null;
   }
 
   /// Apply any default values that might be missing when running in
   /// no-interaction mode
-  setNoInteractionDefaults() {}
+  setNoInteractionDefaults() {
+    if (operation == null) {
+      operation = OperationType.all;
+    }
+  }
 
   bool wantsHelp() {
     var optionResult = getParameterValue(ConfigurationOption.help);
-    return optionResult != null ? optionResult : false;
-  }
-
-  bool wantsNoInteraction() {
-    var optionResult = getParameterValue(ConfigurationOption.noInteraction);
     return optionResult != null ? optionResult : false;
   }
 

@@ -39,15 +39,19 @@ class Wizard {
     _maybeAskMode();
     _maybeAskOperation();
     _maybeAskProjectDirectoryPreset();
-    _maybeAskVerbosity();
 
     dialog.order = dialogOrder;
     dialogOrder = <String>[];
   }
 
   Config run() {
-    Map answers = dialog.ask();
-    _applyAnswersToConfiguration(answers);
+    Map answers;
+    if (dialogOrder.isNotEmpty) {
+      answers = dialog.ask();
+      _applyAnswersToConfiguration(answers);
+    } else {
+      answers = {};
+    }
 
     _askDetails();
     if (_needsClarification(answers)) {
@@ -67,7 +71,7 @@ class Wizard {
       dialog.order = dialogOrder;
       dialogOrder = <String>[];
 
-      Map answers = dialog.ask();
+      final Map answers = dialog.ask();
       _applyDetailsToConfiguration(answers);
     }
   }
@@ -91,20 +95,15 @@ class Wizard {
     config.mode ??= answers['mode'];
 
     if (!config.hasOperation()) {
-      var operationAnswer =
+      final operationAnswer =
           _getAnswerByOption(answers, ConfigurationOption.operation);
-      var selectedOption = OperationSelectionOptions.entries
+      final selectedOption = OperationSelectionOptions.entries
           .firstWhere((element) => element.value == operationAnswer);
       this.config.operation = selectedOption.key;
     }
 
-    if (!this.config.verbose) {
-      this.config.verbose =
-          _getFlagByOption(answers, ConfigurationOption.verbose);
-    }
-
     if (!config.hasProjectDirectoryBeenEdited) {
-      var selection = answers['projectPathPreset'];
+      final selection = answers['projectPathPreset'];
 
       if (selection == ProjectPathPresetOptions[ProjectPathPreset.cwd]) {
         config.projectDirectory = 'realpath .'.firstLine ?? '.';
@@ -142,7 +141,7 @@ class Wizard {
   }
 
   bool _getFlagByOption(answers, option) {
-    var answerGiven = answers[_getKey(option)];
+    final answerGiven = answers[_getKey(option)];
     return answerGiven != null ? answerGiven : false;
   }
 
@@ -220,17 +219,9 @@ class Wizard {
     }
   }
 
-  void _maybeAskVerbosity() {
-    if (!config.verbose) {
-      String key = _getKey(ConfigurationOption.verbose);
-      _makeQuestion(key, 'Would you like to enable verbose output?', true);
-      dialogOrder.add(key);
-    }
-  }
-
   void _maybeClarifyComment() {
     if (wantsComment) {
-      String key = _getKey(ConfigurationOption.comment);
+      final String key = _getKey(ConfigurationOption.comment);
       _makeQuestion(
           key, 'Please specify the tag / comment (will-be-slugified).');
       dialogOrder.add(key);
@@ -240,7 +231,7 @@ class Wizard {
   void _maybeClarifyCustomProjectDirectory() {
     if (previousAnswers['projectPathPreset'] ==
         ProjectPathPresetOptions[ProjectPathPreset.custom]) {
-      String key = _getKey(ConfigurationOption.projectDirectory);
+      final String key = _getKey(ConfigurationOption.projectDirectory);
       _makeQuestion(key,
           'Please enter the full path to the project directory you want to use:');
       dialogOrder.add(key);

@@ -32,7 +32,7 @@ class WpBackup {
       exit(ExitCodes.ok);
     }
 
-    if (config.wantsNoInteraction()) {
+    if (config.noInteraction) {
       config.setNoInteractionDefaults();
     } else {
       Wizard wizard = Wizard(config);
@@ -52,8 +52,14 @@ class WpBackup {
 
     if (config.mode == null ||
         ![Commands.restore, Commands.backup].contains(config.mode)) {
-      l.error('Invalid command. Try "wp-backup -h" for usage information.');
-      exit(ExitCodes.commandNotFound);
+      // if no mode is set or the mode is invalid, exit with an error,
+      // _unless_ the -c or -C flags are set
+      if (config.useConfigFile) {
+        config.mode = Commands.backup;
+      } else {
+        l.error('Invalid command. Try "wp-backup -h" for usage information.');
+        exit(ExitCodes.commandNotFound);
+      }
     }
     testDirectory(config.projectDirectory);
 

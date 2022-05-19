@@ -26,7 +26,8 @@ class DatabaseBackup {
 
   DatabaseBackup(this.config) {
     DatabaseConfiguration? dbConfig = config.dbConfig;
-    if (dbConfig == null &&this.config.configurationFile is YamlConfiguration) {
+    if (dbConfig == null &&
+        this.config.configurationFile is YamlConfiguration) {
       Logger().debug('Checking YAML configuration for database config...');
       dbConfig = YamlReader(this.config.configurationFile!.yaml).read();
     }
